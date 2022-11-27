@@ -5,7 +5,6 @@ import (
 	"github.com/Kidsunbo/kie_toolbox_go/logs"
 	"github.com/gin-gonic/gin"
 	"kies-movie-backend/handler"
-	"kies-movie-backend/handler/middleware"
 	"kies-movie-backend/model/db"
 	"os"
 )
@@ -32,12 +31,16 @@ func StartServer() {
 }
 
 func Register(g *gin.Engine) {
-	g.Use(gin.Logger(), gin.Recovery(), middleware.MetaInfo())
+	g.Use(gin.Logger(), gin.Recovery(), handler.MiddlewareMetaInfo())
 
 	g.GET("/ping", handler.Ping)
 
+	sessionManage := g.Group("/session_manage")
+	sessionManage.POST("/log_in", handler.SessionManageLogin)
+	sessionManage.POST("/sign_up", handler.SessionManageSignup)
+
 	user := g.Group("/user")
-	user.POST("/add", handler.UserAdd)
+	user.Use(handler.MiddlewareAuthority())
 	user.POST("/update", handler.UserUpdate)
 	user.GET("/detail", handler.UserDetail)
 	user.GET("/list", handler.UserList)

@@ -6,42 +6,9 @@ import (
 	"kies-movie-backend/constant"
 	"kies-movie-backend/dto"
 	"kies-movie-backend/model/db"
-	"kies-movie-backend/model/table"
 	"kies-movie-backend/service"
 	"kies-movie-backend/utils"
-	"time"
 )
-
-func UserAdd(c *gin.Context) {
-	req := dto.UserAddRequest{}
-	err := c.ShouldBindJSON(&req)
-	if err != nil {
-		logs.CtxWarn(c, "failed to bind request, err=%v", err)
-		OnFail(c, constant.RequestParameterError)
-		return
-	}
-	logs.CtxInfo(c, "req=%v", utils.ToJSON(req))
-	user := &table.User{
-		Account:          req.Account,
-		Password:         req.Password,
-		NickName:         req.NickName,
-		Profile:          req.Profile,
-		Phone:            req.Phone,
-		Email:            req.Email,
-		Gender:           req.Gender,
-		SelfIntroduction: req.SelfIntroduction,
-		PreferTags:       utils.ToJSON(req.PreferTags),
-		CreateTime:       time.Now(),
-		UpdateTime:       time.Now(),
-	}
-	err = db.AddUser(c, user)
-	if err != nil {
-		logs.CtxWarn(c, "failed to add user %v, err=%v", req.Account, err)
-		OnFail(c, constant.ServiceError)
-		return
-	}
-	OnSuccess(c, nil)
-}
 
 func UserUpdate(c *gin.Context) {
 	req := dto.UserUpdateRequest{}
@@ -51,9 +18,15 @@ func UserUpdate(c *gin.Context) {
 		OnFail(c, constant.RequestParameterError)
 		return
 	}
+
 	if req.Account == "" {
 		logs.CtxWarn(c, "account is empty")
 		OnFail(c, constant.RequestParameterError)
+		return
+	}
+	if c.GetString(constant.Account) != req.Account {
+		logs.CtxWarn(c, "authority check failed")
+		OnFail(c, constant.NoAuthority)
 		return
 	}
 
@@ -83,6 +56,11 @@ func UserDetail(c *gin.Context) {
 	if account == "" {
 		logs.CtxWarn(c, "account is empty")
 		OnFail(c, constant.RequestParameterError)
+		return
+	}
+	if c.GetString(constant.Account) != account {
+		logs.CtxWarn(c, "authority check failed")
+		OnFail(c, constant.NoAuthority)
 		return
 	}
 
