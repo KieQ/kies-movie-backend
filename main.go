@@ -32,9 +32,7 @@ func StartServer() {
 }
 
 func Register(g *gin.Engine) {
-	g.Use(gin.Logger())
-	g.Use(gin.Recovery())
-	g.Use(middleware.MetaInfo())
+	g.Use(gin.Logger(), gin.Recovery(), middleware.MetaInfo())
 
 	g.GET("/ping", handler.Ping)
 
