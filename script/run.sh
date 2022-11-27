@@ -1,3 +1,1 @@
-EXPORT PORT=80
-
 ./movie
