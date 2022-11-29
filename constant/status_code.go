@@ -5,9 +5,10 @@ type StatusCode int32
 const (
 	ServiceError          StatusCode = 10000
 	UserNotLogin                     = 10001
-	RequestParameterError            = 10002
-	FailedToProcess                  = 10003
-	NoAuthority                      = 10004
+	UserIPChanged                    = 10002
+	RequestParameterError            = 10003
+	FailedToProcess                  = 10004
+	NoAuthority                      = 10005
 )
 
 func (s StatusCode) String() string {
@@ -16,6 +17,8 @@ func (s StatusCode) String() string {
 		return "Service Error Happened"
 	case UserNotLogin:
 		return "User has not logged in"
+	case UserIPChanged:
+		return "User IP has changed"
 	case RequestParameterError:
 		return "RequestParameter has error"
 	case FailedToProcess:

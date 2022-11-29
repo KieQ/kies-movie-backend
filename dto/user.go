@@ -14,7 +14,6 @@ type UserUpdateRequest struct {
 
 type User struct {
 	Account          string   `json:"account"`
-	Password         string   `json:"password"`
 	NickName         string   `json:"nick_name"`
 	Profile          string   `json:"profile"`
 	Phone            string   `json:"phone"`

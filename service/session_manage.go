@@ -25,8 +25,8 @@ func CheckUserExist(ctx context.Context, account string) (bool, error) {
 	return len(users) > 0, nil
 }
 
-func SetToken(c *gin.Context, account string, rememberMe bool) {
-	var maxAge = -1
+func SetToken(c *gin.Context, account string, rememberMe bool, ip string) {
+	var maxAge = 0
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	if rememberMe {
@@ -35,6 +35,7 @@ func SetToken(c *gin.Context, account string, rememberMe bool) {
 	}
 	claims[constant.RememberMe] = rememberMe
 	claims[constant.Account] = account
+	claims[constant.TokenIP] = ip
 
 	s, err := token.SignedString([]byte(secretKey))
 	if err != nil {

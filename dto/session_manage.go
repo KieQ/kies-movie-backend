@@ -21,3 +21,7 @@ type SessionManageSignupRequest struct {
 	SelfIntroduction string   `json:"self_introduction"`
 	PreferTags       []string `json:"prefer_tags"`
 }
+
+type SessionManageLogoutRequest struct {
+	Account string `json:"account"`
+}

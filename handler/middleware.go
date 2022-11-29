@@ -5,15 +5,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"kies-movie-backend/constant"
 	"kies-movie-backend/service"
-	"reflect"
+	"kies-movie-backend/utils"
 	"time"
 )
 
 func MiddlewareMetaInfo() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if logID := c.GetHeader(constant.LogID); logID != "" {
-			c.Set(constant.LogID, logID)
-		}
+		c.Set(constant.RequestID, c.GetHeader(constant.RequestID))
+		c.Set(constant.RealIP, c.GetHeader(constant.RealIP))
 	}
 }
 
@@ -33,8 +32,9 @@ func MiddlewareAuthority() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		if val, exist := claims[constant.Account]; !exist {
-			logs.CtxWarn(c, "JWT does not contain account")
+
+		if val, err := utils.GetFromAnyMap[string](claims, constant.Account); err != nil {
+			logs.CtxWarn(c, "JWT does not contain %v, err=%v", constant.Account, err)
 			OnFail(c, constant.UserNotLogin)
 			c.Abort()
 			return
@@ -42,33 +42,36 @@ func MiddlewareAuthority() gin.HandlerFunc {
 			c.Set(constant.Account, val)
 		}
 
-		if rmAny, exist := claims[constant.RememberMe]; !exist {
-			logs.CtxWarn(c, "%v should exist", constant.RememberMe)
-			OnFail(c, constant.ServiceError)
+		if val, err := utils.GetFromAnyMap[string](claims, constant.TokenIP); err != nil {
+			logs.CtxWarn(c, "JWT does not contain %v, err=%v", constant.Account, err)
+			OnFail(c, constant.UserNotLogin)
 			c.Abort()
 			return
-		} else if rm, ok := rmAny.(bool); !ok {
-			logs.CtxWarn(c, "%v should be of type boolean", constant.RememberMe)
+		} else if val != c.GetHeader(constant.RealIP) {
+			logs.CtxWarn(c, "user ip has changed from %v to %v", val, c.GetHeader(constant.RealIP))
+			OnFail(c, constant.UserIPChanged)
+			c.Abort()
+			return
+		}
+
+		if rm, err := utils.GetFromAnyMap[bool](claims, constant.RememberMe); err != nil {
+			logs.CtxWarn(c, "failed to get %v, err=%v", constant.RememberMe, err)
 			OnFail(c, constant.ServiceError)
 			c.Abort()
 			return
 		} else if rm {
-			if expAny, exist := claims["exp"]; !exist {
-				logs.CtxWarn(c, "exp should be in JWT when %v is true", constant.RememberMe)
-				OnFail(c, constant.ServiceError)
-				c.Abort()
-				return
-			} else if exp, ok := expAny.(float64); !ok {
-				logs.CtxWarn(c, "the value of exp is not of type int64, it's %v", reflect.TypeOf(expAny))
+			if exp, err := utils.GetFromAnyMap[float64](claims, "exp"); err != nil {
+				logs.CtxWarn(c, "failed to get exp, err=%v", err)
 				OnFail(c, constant.ServiceError)
 				c.Abort()
 				return
 			} else {
 				now := time.Now().Unix()
 				if now < int64(exp) && int64(exp)-now < int64(constant.RefreshLimit.Seconds()) {
-					service.SetToken(c, c.GetString(constant.Account), rm)
+					service.SetToken(c, c.GetString(constant.Account), rm, c.GetHeader(constant.RealIP))
 				}
 			}
 		}
+
 	}
 }

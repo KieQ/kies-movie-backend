@@ -43,7 +43,7 @@ func SessionManageLogin(c *gin.Context) {
 	}
 
 	// Set token
-	service.SetToken(c, req.Account, req.RememberMe)
+	service.SetToken(c, req.Account, req.RememberMe, c.GetHeader(constant.RealIP))
 	OnSuccess(c, dto.SessionManageLoginResponse{NickName: users[0].NickName})
 }
 
@@ -94,5 +94,28 @@ func SessionManageSignup(c *gin.Context) {
 		OnFail(c, constant.ServiceError)
 		return
 	}
+	OnSuccess(c, nil)
+}
+
+func SessionManageLogout(c *gin.Context) {
+	req := dto.SessionManageLogoutRequest{}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		logs.CtxWarn(c, "failed to bind request, err=%v", err)
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+	logs.CtxInfo(c, "req=%v", utils.ToJSON(req))
+
+	// Parameter check
+	if req.Account == "" {
+		logs.CtxWarn(c, "required parameters are missing")
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+
+	// Remove Cookie
+	c.SetCookie(constant.Token, "", -1, "/", "", false, false)
+
 	OnSuccess(c, nil)
 }

@@ -12,7 +12,6 @@ func TransUserTableToDTO(user *table.User) *dto.User {
 	}
 	return &dto.User{
 		Account:          user.Account,
-		Password:         user.Password,
 		NickName:         user.NickName,
 		Profile:          user.Profile,
 		Phone:            user.Phone,
