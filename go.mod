@@ -3,18 +3,19 @@ module kies-movie-backend
 go 1.18
 
 require (
-	github.com/Kidsunbo/kie_toolbox_go/logs v0.0.0-20221123075406-4b21b01df19f
 	github.com/gin-gonic/gin v1.8.1
 	gorm.io/driver/postgres v1.4.5
 	gorm.io/gorm v1.24.2
 )
 
 require (
+	github.com/Kidsunbo/kie_toolbox_go/logs v0.0.0-20221128085724-fae4c95b71b1 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.1 // indirect
 	github.com/goccy/go-json v0.9.11 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect

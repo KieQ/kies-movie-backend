@@ -1,21 +1,5 @@
 package dto
 
-type UserAddRequest struct {
-	Account          string   `json:"account"`
-	Password         string   `json:"password"`
-	NickName         string   `json:"nick_name"`
-	Gender           int32    `json:"gender"`
-	Profile          string   `json:"profile"`
-	Phone            string   `json:"phone"`
-	Email            string   `json:"email"`
-	SelfIntroduction string   `json:"self_introduction"`
-	PreferTags       []string `json:"prefer_tags"`
-}
-
-type UserAddResponse struct {
-	ID int64 `json:"id"`
-}
-
 type UserUpdateRequest struct {
 	Account          string   `json:"account"`
 	Password         *string  `json:"password"`
@@ -30,7 +14,6 @@ type UserUpdateRequest struct {
 
 type User struct {
 	Account          string   `json:"account"`
-	Password         string   `json:"password"`
 	NickName         string   `json:"nick_name"`
 	Profile          string   `json:"profile"`
 	Phone            string   `json:"phone"`

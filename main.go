@@ -5,7 +5,6 @@ import (
 	"github.com/Kidsunbo/kie_toolbox_go/logs"
 	"github.com/gin-gonic/gin"
 	"kies-movie-backend/handler"
-	"kies-movie-backend/handler/middleware"
 	"kies-movie-backend/model/db"
 	"os"
 )
@@ -16,7 +15,7 @@ func main() {
 }
 
 func StartServer() {
-	var port = os.Getenv("PORT")
+	var port = os.Getenv("BACKEND_PORT")
 	if port == "" {
 		port = "8080"
 	} else {
@@ -32,15 +31,22 @@ func StartServer() {
 }
 
 func Register(g *gin.Engine) {
-	g.Use(gin.Logger())
-	g.Use(gin.Recovery())
-	g.Use(middleware.MetaInfo())
+	g.Use(gin.Logger(), gin.Recovery(), handler.MiddlewareMetaInfo())
 
 	g.GET("/ping", handler.Ping)
 
+	sessionManage := g.Group("/session_manage")
+	sessionManage.POST("/log_in", handler.SessionManageLogin)
+	sessionManage.POST("/sign_up", handler.SessionManageSignup)
+	sessionManage.POST("/log_out", handler.MiddlewareAuthority(), handler.SessionManageLogout)
+
 	user := g.Group("/user")
-	user.POST("/add", handler.UserAdd)
+	user.Use(handler.MiddlewareAuthority())
 	user.POST("/update", handler.UserUpdate)
 	user.GET("/detail", handler.UserDetail)
 	user.GET("/list", handler.UserList)
+
+	movie := g.Group("/movie")
+	movie.Use(handler.MiddlewareAuthority())
+	movie.GET("/list", handler.MovieAll)
 }

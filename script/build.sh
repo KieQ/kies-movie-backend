@@ -1,1 +1,1 @@
-go build -ldflags '-s -w' -o movie
+go build -ldflags '-s -w' -o kies
