@@ -4,22 +4,10 @@ import (
 	"context"
 	"errors"
 	"github.com/Kidsunbo/kie_toolbox_go/logs"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"kies-movie-backend/model/table"
 	"kies-movie-backend/utils"
-	"os"
 	"time"
 )
-
-var movieDB *gorm.DB
-
-func InitUserDB() error {
-	dsn := os.Getenv("MOVIE_DB_POSTGRES_URL")
-	var err error
-	movieDB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	return err
-}
 
 func AddUser(ctx context.Context, user *table.User) error {
 	logs.CtxInfo(ctx, "added user=%v", utils.ToJSON(user))
