@@ -4,6 +4,7 @@ import (
 	"github.com/Kidsunbo/kie_toolbox_go/logs"
 	"github.com/gin-gonic/gin"
 	"kies-movie-backend/constant"
+	"kies-movie-backend/i18n"
 	"kies-movie-backend/service"
 	"kies-movie-backend/utils"
 	"time"
@@ -13,18 +14,27 @@ func MiddlewareMetaInfo() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set(constant.RequestID, c.GetHeader(constant.RequestID))
 		c.Set(constant.RealIP, c.GetHeader(constant.RealIP))
+		c.Set(i18n.ContextLanguage, c.Query(constant.Lang))
 	}
 }
 
-func MiddlewareAuthority() gin.HandlerFunc {
+func MiddlewareAuthority(allowNotLogin bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		//Get Token from cookie
 		tokenStr, err := c.Cookie(constant.Token)
 		if err != nil {
-			logs.CtxWarn(c, "failed to get token, err=%v", err)
-			OnFail(c, constant.UserNotLogin)
-			c.Abort()
-			return
+			if allowNotLogin {
+				logs.CtxInfo(c, "this request is not from logged in user but allowed")
+				c.Set(constant.NotLogin, true)
+				return
+			} else {
+				logs.CtxWarn(c, "failed to get token, err=%v", err)
+				OnFail(c, constant.UserNotLogin)
+				c.Abort()
+				return
+			}
 		}
+
 		claims, err := service.ValidateToken(tokenStr)
 		if err != nil {
 			logs.CtxWarn(c, "failed to validate token, err=%v", err)
@@ -49,6 +59,7 @@ func MiddlewareAuthority() gin.HandlerFunc {
 			return
 		} else if val != c.GetHeader(constant.RealIP) {
 			logs.CtxWarn(c, "user ip has changed from %v to %v", val, c.GetHeader(constant.RealIP))
+			c.SetCookie(constant.Token, "", -1, "/", "", false, false)
 			OnFail(c, constant.UserIPChanged)
 			c.Abort()
 			return

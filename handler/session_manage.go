@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"kies-movie-backend/constant"
 	"kies-movie-backend/dto"
+	"kies-movie-backend/i18n"
 	"kies-movie-backend/model/db"
 	"kies-movie-backend/model/table"
 	"kies-movie-backend/service"
@@ -33,12 +34,12 @@ func SessionManageLogin(c *gin.Context) {
 	users, err := db.GetUser(c, map[string]interface{}{"account": req.Account, "password": req.Password})
 	if err != nil {
 		logs.CtxWarn(c, "failed to get user, err=%v", err)
-		OnFailWithMessage(c, constant.FailedToProcess, "Failed to check existence")
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToCheckExistence)
 		return
 	}
 	if len(users) == 0 {
 		logs.CtxWarn(c, "length of users is zero")
-		OnFailWithMessage(c, constant.FailedToProcess, "The password is wrong/ The user does not exist")
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToLogin)
 		return
 	}
 
@@ -70,7 +71,7 @@ func SessionManageSignup(c *gin.Context) {
 		return
 	} else if exist {
 		logs.CtxWarn(c, "user has existed")
-		OnFailWithMessage(c, constant.RequestParameterError, "user has existed")
+		OnFailWithMessage(c, constant.RequestParameterError, i18n.UserHasExisted)
 		return
 	}
 

@@ -38,15 +38,15 @@ func Register(g *gin.Engine) {
 	sessionManage := g.Group("/session_manage")
 	sessionManage.POST("/log_in", handler.SessionManageLogin)
 	sessionManage.POST("/sign_up", handler.SessionManageSignup)
-	sessionManage.POST("/log_out", handler.MiddlewareAuthority(), handler.SessionManageLogout)
+	sessionManage.POST("/log_out", handler.MiddlewareAuthority(false), handler.SessionManageLogout)
 
 	user := g.Group("/user")
-	user.Use(handler.MiddlewareAuthority())
+	user.Use(handler.MiddlewareAuthority(false))
 	user.POST("/update", handler.UserUpdate)
 	user.GET("/detail", handler.UserDetail)
 	user.GET("/list", handler.UserList)
 
 	movie := g.Group("/movie")
-	movie.Use(handler.MiddlewareAuthority())
+	movie.Use(handler.MiddlewareAuthority(true))
 	movie.GET("/list", handler.MovieAll)
 }
