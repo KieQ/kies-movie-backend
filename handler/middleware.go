@@ -7,7 +7,6 @@ import (
 	"kies-movie-backend/i18n"
 	"kies-movie-backend/service"
 	"kies-movie-backend/utils"
-	"time"
 )
 
 func MiddlewareMetaInfo() gin.HandlerFunc {
@@ -35,6 +34,7 @@ func MiddlewareAuthority(allowNotLogin bool) gin.HandlerFunc {
 			}
 		}
 
+		//validate the JWT
 		claims, err := service.ValidateToken(tokenStr)
 		if err != nil {
 			logs.CtxWarn(c, "failed to validate token, err=%v", err)
@@ -43,6 +43,7 @@ func MiddlewareAuthority(allowNotLogin bool) gin.HandlerFunc {
 			return
 		}
 
+		//get account from JWT, if success, set with key account
 		if val, err := utils.GetFromAnyMap[string](claims, constant.Account); err != nil {
 			logs.CtxWarn(c, "JWT does not contain %v, err=%v", constant.Account, err)
 			OnFail(c, constant.UserNotLogin)
@@ -52,8 +53,9 @@ func MiddlewareAuthority(allowNotLogin bool) gin.HandlerFunc {
 			c.Set(constant.Account, val)
 		}
 
+		//get the request ip and check the IP
 		if val, err := utils.GetFromAnyMap[string](claims, constant.TokenIP); err != nil {
-			logs.CtxWarn(c, "JWT does not contain %v, err=%v", constant.Account, err)
+			logs.CtxWarn(c, "JWT does not contain %v, err=%v", constant.TokenIP, err)
 			OnFail(c, constant.UserNotLogin)
 			c.Abort()
 			return
@@ -65,24 +67,6 @@ func MiddlewareAuthority(allowNotLogin bool) gin.HandlerFunc {
 			return
 		}
 
-		if rm, err := utils.GetFromAnyMap[bool](claims, constant.RememberMe); err != nil {
-			logs.CtxWarn(c, "failed to get %v, err=%v", constant.RememberMe, err)
-			OnFail(c, constant.ServiceError)
-			c.Abort()
-			return
-		} else if rm {
-			if exp, err := utils.GetFromAnyMap[float64](claims, "exp"); err != nil {
-				logs.CtxWarn(c, "failed to get exp, err=%v", err)
-				OnFail(c, constant.ServiceError)
-				c.Abort()
-				return
-			} else {
-				now := time.Now().Unix()
-				if now < int64(exp) && int64(exp)-now < int64(constant.RefreshLimit.Seconds()) {
-					service.SetToken(c, c.GetString(constant.Account), rm, c.GetHeader(constant.RealIP))
-				}
-			}
-		}
-
 	}
+
 }

@@ -114,6 +114,11 @@ func SessionManageLogout(c *gin.Context) {
 		OnFail(c, constant.RequestParameterError)
 		return
 	}
+	if c.GetString(constant.Account) != req.Account {
+		logs.CtxWarn(c, "authority check failed")
+		OnFail(c, constant.NoAuthority)
+		return
+	}
 
 	// Remove Cookie
 	c.SetCookie(constant.Token, "", -1, "/", "", false, false)

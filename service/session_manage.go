@@ -33,7 +33,6 @@ func SetToken(c *gin.Context, account string, rememberMe bool, ip string) {
 		maxAge = int(constant.RememberMeDuration.Seconds())
 		claims["exp"] = time.Now().Add(constant.RememberMeDuration).Unix()
 	}
-	claims[constant.RememberMe] = rememberMe
 	claims[constant.Account] = account
 	claims[constant.TokenIP] = ip
 
