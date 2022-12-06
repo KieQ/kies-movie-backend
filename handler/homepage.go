@@ -62,7 +62,7 @@ func HomepageContent(c *gin.Context) {
 		result.CarouselItems = append(result.CarouselItems, &dto.CarouselItem{
 			PosterImage:     tmdb.WrapImage(utils.DowncastWithDefault[string](item["poster_path"], "")),
 			BackgroundImage: tmdb.WrapImage(utils.DowncastWithDefault[string](item["backdrop_path"], "")),
-			Title:           utils.DowncastWithDefault[string](item["title"], ""),
+			Title:           utils.DowncastWithDefault[string](item["name"], ""),
 			Content:         utils.DowncastWithDefault[string](item["overview"], ""),
 			Value:           "",
 		})
