@@ -30,7 +30,7 @@ func Sample[T any](samples []T, count int) []T {
 		return samples
 	}
 	result := make([]T, 0, count)
-	for _, v := range rand.Perm(count) {
+	for _, v := range rand.Perm(len(samples))[:count] {
 		result = append(result, samples[v])
 	}
 	return result
