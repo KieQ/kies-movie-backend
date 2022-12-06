@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"kies-movie-backend/constant"
 	"kies-movie-backend/dto"
+	"kies-movie-backend/i18n"
 	"kies-movie-backend/model/db"
 	"kies-movie-backend/service"
 	"kies-movie-backend/utils"
@@ -58,11 +59,6 @@ func UserDetail(c *gin.Context) {
 		OnFail(c, constant.RequestParameterError)
 		return
 	}
-	if c.GetString(constant.Account) != account {
-		logs.CtxWarn(c, "authority check failed")
-		OnFail(c, constant.NoAuthority)
-		return
-	}
 
 	user, err := db.GetUser(c, map[string]interface{}{"account": account})
 	if err != nil {
@@ -72,7 +68,7 @@ func UserDetail(c *gin.Context) {
 	}
 	if len(user) == 0 {
 		logs.CtxWarn(c, "length of user is empty")
-		OnFailWithMessage(c, constant.RequestParameterError, "there is no user found")
+		OnFailWithMessage(c, constant.RequestParameterError, i18n.CouldNotFindUser)
 		return
 	}
 
