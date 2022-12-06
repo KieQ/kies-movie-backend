@@ -43,7 +43,7 @@ func HomepageContent(c *gin.Context) {
 
 	if len(movie)+len(tv) == 0 {
 		logs.CtxWarn(c, "no movie and tv fetched")
-		OnFailWithMessage(c, constant.ServiceError, i18n.FailedToLogin)
+		OnFailWithMessage(c, constant.ServiceError, i18n.NoMovieOrTVFound)
 		return
 	}
 

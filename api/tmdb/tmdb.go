@@ -19,7 +19,7 @@ func init() {
 }
 
 type response struct {
-	Result []map[string]interface{}
+	Result []map[string]interface{} `json:"result"`
 }
 
 func SearchMulti(ctx context.Context, name string, lang string) ([]map[string]interface{}, error) {
