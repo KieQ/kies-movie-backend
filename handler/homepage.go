@@ -9,6 +9,7 @@ import (
 	"kies-movie-backend/dto"
 	"kies-movie-backend/i18n"
 	"kies-movie-backend/utils"
+	"math/rand"
 	"strings"
 	"time"
 )
@@ -21,18 +22,28 @@ func HomepageContent(c *gin.Context) {
 	case "zh-cn":
 		lang, originalLang = "zh-CN", "zh"
 	}
-	year := time.Now().AddDate(0, -6, 0).Year()
+	year := time.Now().AddDate(0, -6, 0).Year() - rand.Intn(15)
 	var movie []map[string]interface{}
 	var tv []map[string]interface{}
 	eg := errgroup.Group{}
 	eg.Go(func() error {
-		var err error
-		movie, err = tmdb.DiscoverMovie(c, lang, originalLang, year)
+		temp, err := tmdb.DiscoverMovie(c, lang, originalLang, year)
+		for _, item := range temp {
+			if utils.DowncastWithDefault[string](item["poster_path"], "") != "" &&
+				utils.DowncastWithDefault[string](item["backdrop_path"], "") != "" {
+				movie = append(movie, item)
+			}
+		}
 		return err
 	})
 	eg.Go(func() error {
-		var err error
-		tv, err = tmdb.DiscoverTV(c, lang, originalLang, year)
+		temp, err := tmdb.DiscoverTV(c, lang, originalLang, year)
+		for _, item := range temp {
+			if utils.DowncastWithDefault[string](item["poster_path"], "") != "" &&
+				utils.DowncastWithDefault[string](item["backdrop_path"], "") != "" {
+				tv = append(tv, item)
+			}
+		}
 		return err
 	})
 	if err := eg.Wait(); err != nil {
