@@ -1,22 +1,35 @@
 package handler
 
-import (
-	"github.com/gin-gonic/gin"
-	"kies-movie-backend/constant"
-)
+import "github.com/gin-gonic/gin"
 
-func MovieAll(c *gin.Context) {
-	if c.GetBool(constant.NotLogin) {
-		MovieAllNotLogin(c)
-	} else {
-		MovieAllLogin(c)
-	}
-}
-
-func MovieAllNotLogin(c *gin.Context) {
+func MovieList(c *gin.Context) {
 	OnSuccess(c, nil)
 }
 
-func MovieAllLogin(c *gin.Context) {
+func MovieDetail(c *gin.Context) {
+	OnSuccess(c, nil)
+}
+
+func MovieLike(c *gin.Context) {
+	OnSuccess(c, nil)
+}
+
+func MovieUpdate(c *gin.Context) {
+	OnSuccess(c, nil)
+}
+
+func MovieAdd(c *gin.Context) {
+	OnSuccess(c, nil)
+}
+
+func MovieDelete(c *gin.Context) {
+	OnSuccess(c, nil)
+}
+
+func NotLoginMovieList(c *gin.Context) {
+	OnSuccess(c, nil)
+}
+
+func NotLoginMovieDetail(c *gin.Context) {
 	OnSuccess(c, nil)
 }

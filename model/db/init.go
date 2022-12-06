@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-var movieDB *gorm.DB
+var db *gorm.DB
 
 func MustInit() {
 	if err := InitUserDB(); err != nil {
@@ -18,6 +18,6 @@ func MustInit() {
 func InitUserDB() error {
 	dsn := os.Getenv("MOVIE_DB_POSTGRES_URL")
 	var err error
-	movieDB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	return err
 }

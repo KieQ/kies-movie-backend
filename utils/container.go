@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"math/rand"
 	"reflect"
 )
 
@@ -22,4 +23,15 @@ func GetFromAnyMap[T any, K comparable](m map[K]any, k K) (T, error) {
 	} else {
 		return result, nil
 	}
+}
+
+func Sample[T any](samples []T, count int) []T {
+	if len(samples) <= count {
+		return samples
+	}
+	result := make([]T, 0, count)
+	for _, v := range rand.Perm(count) {
+		result = append(result, samples[v])
+	}
+	return result
 }

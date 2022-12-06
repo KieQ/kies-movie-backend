@@ -59,11 +59,6 @@ func UserDetail(c *gin.Context) {
 		OnFail(c, constant.RequestParameterError)
 		return
 	}
-	if c.GetString(constant.Account) != account {
-		logs.CtxWarn(c, "authority check failed")
-		OnFail(c, constant.NoAuthority)
-		return
-	}
 
 	user, err := db.GetUser(c, map[string]interface{}{"account": account})
 	if err != nil {

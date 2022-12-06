@@ -17,21 +17,15 @@ func MiddlewareMetaInfo() gin.HandlerFunc {
 	}
 }
 
-func MiddlewareAuthority(allowNotLogin bool) gin.HandlerFunc {
+func MiddlewareAuthority() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//Get Token from cookie
 		tokenStr, err := c.Cookie(constant.Token)
 		if err != nil {
-			if allowNotLogin {
-				logs.CtxInfo(c, "this request is not from logged in user but allowed")
-				c.Set(constant.NotLogin, true)
-				return
-			} else {
-				logs.CtxWarn(c, "failed to get token, err=%v", err)
-				OnFail(c, constant.UserNotLogin)
-				c.Abort()
-				return
-			}
+			logs.CtxWarn(c, "failed to get token, err=%v", err)
+			OnFail(c, constant.UserNotLogin)
+			c.Abort()
+			return
 		}
 
 		//validate the JWT

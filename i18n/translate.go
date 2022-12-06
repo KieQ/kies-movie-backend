@@ -14,9 +14,14 @@ const (
 	FailedToCheckExistence
 	FailedToLogin
 	CouldNotFindUser
+	NoMovieOrTVFound
 )
 
 var translate = map[SentenceIndex]sentence{
+	NoMovieOrTVFound: {
+		English: "service failed to fetch movies and tv",
+		Chinese: "系统获取电影/电视剧信息失败",
+	},
 	CouldNotFindUser: {
 		English: "service could not find user information, please check",
 		Chinese: "系统无法找到用户信息，请检查",

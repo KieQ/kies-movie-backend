@@ -8,7 +8,6 @@ const (
 	Account            = "account"
 	TokenIP            = "ip"
 	Token              = "Token"
-	NotLogin           = "NotLogin"
 	Lang               = "lang"
 	RememberMeDuration = 14 * 24 * time.Hour
 )
