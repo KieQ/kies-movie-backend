@@ -36,7 +36,7 @@ func HomepageContent(c *gin.Context) {
 		return err
 	})
 	if err := eg.Wait(); err != nil {
-		logs.CtxWarn(c, "failed to discover movie or tv", err)
+		logs.CtxWarn(c, "failed to discover movie or tv, err=%v", err)
 		OnFail(c, constant.ServiceError)
 		return
 	}
