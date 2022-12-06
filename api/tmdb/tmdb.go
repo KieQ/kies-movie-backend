@@ -66,3 +66,7 @@ func DiscoverMovie(ctx context.Context, lang, originalLang string, year int) ([]
 	}
 	return result.Result, nil
 }
+
+func WrapImage(image string) string {
+	return "https://image.tmdb.org/t/p/original" + image
+}

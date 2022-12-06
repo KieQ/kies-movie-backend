@@ -50,8 +50,8 @@ func HomepageContent(c *gin.Context) {
 	result := &dto.HomepageContentResponse{CarouselItems: make([]*dto.CarouselItem, 0, 3)}
 	for _, item := range utils.Sample(movie, 2) {
 		result.CarouselItems = append(result.CarouselItems, &dto.CarouselItem{
-			PosterImage:     utils.DowncastWithDefault[string](item["poster_path"], ""),
-			BackgroundImage: utils.DowncastWithDefault[string](item["backdrop_path"], ""),
+			PosterImage:     tmdb.WrapImage(utils.DowncastWithDefault[string](item["poster_path"], "")),
+			BackgroundImage: tmdb.WrapImage(utils.DowncastWithDefault[string](item["backdrop_path"], "")),
 			Title:           utils.DowncastWithDefault[string](item["title"], ""),
 			Content:         utils.DowncastWithDefault[string](item["overview"], ""),
 			Value:           "",
@@ -60,8 +60,8 @@ func HomepageContent(c *gin.Context) {
 
 	for _, item := range utils.Sample(tv, 1) {
 		result.CarouselItems = append(result.CarouselItems, &dto.CarouselItem{
-			PosterImage:     utils.DowncastWithDefault[string](item["poster_path"], ""),
-			BackgroundImage: utils.DowncastWithDefault[string](item["backdrop_path"], ""),
+			PosterImage:     tmdb.WrapImage(utils.DowncastWithDefault[string](item["poster_path"], "")),
+			BackgroundImage: tmdb.WrapImage(utils.DowncastWithDefault[string](item["backdrop_path"], "")),
 			Title:           utils.DowncastWithDefault[string](item["title"], ""),
 			Content:         utils.DowncastWithDefault[string](item["overview"], ""),
 			Value:           "",
