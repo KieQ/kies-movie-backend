@@ -19,7 +19,7 @@ func init() {
 }
 
 type response struct {
-	Result []map[string]interface{} `json:"result"`
+	Results []map[string]interface{} `json:"results"`
 }
 
 func SearchMulti(ctx context.Context, name string, lang string) ([]map[string]interface{}, error) {
@@ -34,7 +34,7 @@ func SearchMulti(ctx context.Context, name string, lang string) ([]map[string]in
 	if err != nil {
 		return nil, err
 	}
-	return result.Result, nil
+	return result.Results, nil
 }
 
 func DiscoverTV(ctx context.Context, lang, originalLang string, year int) ([]map[string]interface{}, error) {
@@ -49,7 +49,7 @@ func DiscoverTV(ctx context.Context, lang, originalLang string, year int) ([]map
 	if err != nil {
 		return nil, err
 	}
-	return result.Result, nil
+	return result.Results, nil
 }
 
 func DiscoverMovie(ctx context.Context, lang, originalLang string, year int) ([]map[string]interface{}, error) {
@@ -64,7 +64,7 @@ func DiscoverMovie(ctx context.Context, lang, originalLang string, year int) ([]
 	if err != nil {
 		return nil, err
 	}
-	return result.Result, nil
+	return result.Results, nil
 }
 
 func WrapImage(image string) string {
