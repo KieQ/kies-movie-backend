@@ -9,6 +9,7 @@ import (
 	"kies-movie-backend/dto"
 	"kies-movie-backend/i18n"
 	"kies-movie-backend/utils"
+	"math/rand"
 	"strings"
 	"time"
 )
@@ -21,7 +22,7 @@ func HomepageContent(c *gin.Context) {
 	case "zh-cn":
 		lang, originalLang = "zh-CN", "zh"
 	}
-	year := time.Now().AddDate(0, -6, 0).Year()
+	year := time.Now().AddDate(0, -6, 0).Year() - rand.Intn(15)
 	var movie []map[string]interface{}
 	var tv []map[string]interface{}
 	eg := errgroup.Group{}
