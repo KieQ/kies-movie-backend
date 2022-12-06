@@ -27,13 +27,23 @@ func HomepageContent(c *gin.Context) {
 	var tv []map[string]interface{}
 	eg := errgroup.Group{}
 	eg.Go(func() error {
-		var err error
-		movie, err = tmdb.DiscoverMovie(c, lang, originalLang, year)
+		temp, err := tmdb.DiscoverMovie(c, lang, originalLang, year)
+		for _, item := range temp {
+			if utils.DowncastWithDefault[string](item["poster_path"], "") != "" &&
+				utils.DowncastWithDefault[string](item["backdrop_path"], "") != "" {
+				movie = append(movie, item)
+			}
+		}
 		return err
 	})
 	eg.Go(func() error {
-		var err error
-		tv, err = tmdb.DiscoverTV(c, lang, originalLang, year)
+		temp, err := tmdb.DiscoverTV(c, lang, originalLang, year)
+		for _, item := range temp {
+			if utils.DowncastWithDefault[string](item["poster_path"], "") != "" &&
+				utils.DowncastWithDefault[string](item["backdrop_path"], "") != "" {
+				tv = append(tv, item)
+			}
+		}
 		return err
 	})
 	if err := eg.Wait(); err != nil {
