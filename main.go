@@ -6,10 +6,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"kies-movie-backend/handler"
 	"kies-movie-backend/model/db"
+	"kies-movie-backend/utils"
 	"os"
 )
 
 func main() {
+	utils.InitRandom()
 	db.MustInit()
 	StartServer()
 }
