@@ -79,5 +79,23 @@ func HomepageContent(c *gin.Context) {
 		})
 	}
 
+	allMovieName := make([]string, 0, len(movie))
+	allTVName := make([]string, 0, len(tv))
+	selectName := make([]string, 0)
+	for _, item := range movie {
+		allMovieName = append(allMovieName, utils.DowncastWithDefault[string](item["title"], ""))
+	}
+	for _, item := range tv {
+		allTVName = append(allTVName, utils.DowncastWithDefault[string](item["name"], ""))
+	}
+	for _, item := range movie {
+		allMovieName = append(allMovieName, utils.DowncastWithDefault[string](item["title"], ""))
+	}
+	for _, item := range result.CarouselItems {
+		selectName = append(selectName, item.Title)
+	}
+
+	logs.CtxInfo(c, "allMovieName=%v, allTVName=%v, selectMovie=%v", allMovieName, allTVName, selectName)
+
 	OnSuccess(c, result)
 }
