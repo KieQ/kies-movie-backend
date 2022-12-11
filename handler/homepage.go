@@ -58,7 +58,7 @@ func HomepageContent(c *gin.Context) {
 		return
 	}
 
-	logs.CtxInfo(c, "movie=%v, tv=%v", utils.ToJSON(movie), utils.ToJSON(tv))
+	logs.CtxInfo(c, "movie=%v, tv=%v", len(movie), len(tv))
 
 	result := &dto.HomepageContentResponse{CarouselItems: make([]*dto.CarouselItem, 0, 3)}
 	for _, item := range utils.Sample(movie, 2) {
