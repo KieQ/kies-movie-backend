@@ -22,7 +22,7 @@ func HomepageContent(c *gin.Context) {
 	case "zh-cn":
 		lang, originalLang = "zh-CN", "zh"
 	}
-	year := time.Now().AddDate(0, -6, 0).Year() - rand.Intn(15)
+	year := time.Now().AddDate(0, -1, 0).Year() - rand.Intn(10)
 	var movie []map[string]interface{}
 	var tv []map[string]interface{}
 	eg := errgroup.Group{}
@@ -57,8 +57,6 @@ func HomepageContent(c *gin.Context) {
 		OnFailWithMessage(c, constant.ServiceError, i18n.NoMovieOrTVFound)
 		return
 	}
-
-	logs.CtxInfo(c, "movie=%v, tv=%v", len(movie), len(tv))
 
 	result := &dto.HomepageContentResponse{CarouselItems: make([]*dto.CarouselItem, 0, 3)}
 	for _, item := range utils.Sample(movie, 2) {
