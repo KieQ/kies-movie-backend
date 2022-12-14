@@ -44,3 +44,10 @@ func GetVideo(ctx context.Context, where map[string]interface{}) ([]*table.Video
 	err := db.Table(new(table.Video).Table()).Where(where).Find(&result).Error
 	return result, err
 }
+
+func GetVideoByType(ctx context.Context, types []int, where map[string]interface{}) ([]*table.Video, error) {
+	logs.CtxInfo(ctx, "where condition=%v, types=%v", utils.ToJSON(where), utils.ToJSON(types))
+	result := make([]*table.Video, 0, 1)
+	err := db.Table(new(table.Video).Table()).Where("video_type in %v", types).Where(where).Find(&result).Error
+	return result, err
+}

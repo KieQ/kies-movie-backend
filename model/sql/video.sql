@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS t_video (
     magnet_link TEXT NOT NULL DEFAULT '',
     video_size INTEGER NOT NULL DEFAULT 0,
     video_type INTEGER NOT NULL DEFAULT 0,
+    video_language VARCHAR(5) NOT NULL DEFAULT '',
     location VARCHAR(200) NOT NULL DEFAULT '',
     poster_path VARCHAR(200) NOT NULL DEFAULT '',
     backdrop_path VARCHAR(200) NOT NULL DEFAULT '',

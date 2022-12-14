@@ -8,8 +8,9 @@ type Video struct {
 	VideoDescription string    `gorm:"column:video_description" json:"video_description"`
 	MagnetLink       string    `gorm:"column:magnet_link" json:"magnet_link"`
 	VideoSize        int64     `gorm:"column:video_size" json:"video_size"`
-	VideoType        int64     `gorm:"column:video_type" json:"video_type"` //0:Movie 1:TV 2:Movie(Private) 3:TV(Private)
-	Location         string    `gorm:"column:location" json:"location"`     //Location on the disk
+	VideoType        int64     `gorm:"column:video_type" json:"video_type"`
+	VideoLanguage    string    `gorm:"column:video_language" json:"video_language"`
+	Location         string    `gorm:"column:location" json:"location"` //Location on the disk
 	PosterPath       string    `gorm:"column:poster_path" json:"poster_path"`
 	BackdropPath     string    `gorm:"column:backdrop_path" json:"backdrop_path"`
 	UserAccount      string    `gorm:"column:user_account" json:"user_account"`
