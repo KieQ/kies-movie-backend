@@ -45,7 +45,7 @@ func SessionLogin(c *gin.Context) {
 
 	// Set token
 	service.SetToken(c, req.Account, req.RememberMe, c.GetHeader(constant.RealIP))
-	OnSuccess(c, dto.SessionLoginResponse{NickName: users[0].NickName})
+	OnSuccess(c, dto.SessionLoginResponse{NickName: users[0].NickName, DefaultLanguage: users[0].DefaultLanguage})
 }
 
 func SessionSignup(c *gin.Context) {

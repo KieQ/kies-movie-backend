@@ -7,7 +7,8 @@ type SessionLoginRequest struct {
 }
 
 type SessionLoginResponse struct {
-	NickName string `json:"nick_name"`
+	NickName        string `json:"nick_name"`
+	DefaultLanguage string `json:"default_language"`
 }
 
 type SessionSignupRequest struct {
