@@ -39,6 +39,7 @@ func UserUpdate(c *gin.Context) {
 	utils.AddToMap(updateData, req.SelfIntroduction, "self_introduction")
 	utils.AddToMap(updateData, req.Profile, "profile")
 	utils.AddToMap(updateData, req.NickName, "nick_name")
+	utils.AddToMap(updateData, req.DefaultLanguage, "default_language")
 	if len(req.PreferTags) != 0 {
 		updateData["prefer_tags"] = utils.ToJSON(req.PreferTags)
 	}

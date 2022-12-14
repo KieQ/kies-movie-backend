@@ -13,6 +13,7 @@ type User struct {
 	Gender           int32     `gorm:"column:gender" json:"gender"`
 	SelfIntroduction string    `gorm:"column:self_introduction" json:"self_introduction"`
 	PreferTags       string    `gorm:"column:prefer_tags" json:"prefer_tags"`
+	DefaultLanguage  string    `gorm:"column:default_language" json:"default_language"`
 	CreateTime       time.Time `gorm:"column:create_time" json:"create_time"`
 	UpdateTime       time.Time `gorm:"column:update_time" json:"update_time"`
 }

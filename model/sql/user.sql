@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS t_user (
     gender INTEGER NOT NULL DEFAULT -1,
     self_introduction VARCHAR(500) NOT NULL DEFAULT '',
     prefer_tags VARCHAR(500) NOT NULL DEFAULT '',
+    default_language VARCHAR(5) NOT NULL DEFAULT '',
     create_time TIMESTAMP NOT NULL DEFAULT current_timestamp,
     update_time TIMESTAMP NOT NULL DEFAULT current_timestamp
 );

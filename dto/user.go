@@ -10,6 +10,7 @@ type UserUpdateRequest struct {
 	Email            *string  `json:"email"`
 	SelfIntroduction *string  `json:"self_introduction"`
 	PreferTags       []string `json:"prefer_tags"`
+	DefaultLanguage  *string  `json:"default_language"`
 }
 
 type User struct {

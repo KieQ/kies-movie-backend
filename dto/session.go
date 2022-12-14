@@ -1,16 +1,16 @@
 package dto
 
-type SessionManageLoginRequest struct {
+type SessionLoginRequest struct {
 	Account    string `json:"account"`
 	Password   string `json:"password"`
 	RememberMe bool   `json:"remember_me"`
 }
 
-type SessionManageLoginResponse struct {
+type SessionLoginResponse struct {
 	NickName string `json:"nick_name"`
 }
 
-type SessionManageSignupRequest struct {
+type SessionSignupRequest struct {
 	Account          string   `json:"account"`
 	Password         string   `json:"password"`
 	NickName         string   `json:"nick_name"`
@@ -20,8 +20,9 @@ type SessionManageSignupRequest struct {
 	Email            string   `json:"email"`
 	SelfIntroduction string   `json:"self_introduction"`
 	PreferTags       []string `json:"prefer_tags"`
+	DefaultLanguage  string   `json:"default_language"`
 }
 
-type SessionManageLogoutRequest struct {
+type SessionLogoutRequest struct {
 	Account string `json:"account"`
 }

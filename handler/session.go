@@ -13,8 +13,8 @@ import (
 	"time"
 )
 
-func SessionManageLogin(c *gin.Context) {
-	req := dto.SessionManageLoginRequest{}
+func SessionLogin(c *gin.Context) {
+	req := dto.SessionLoginRequest{}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		logs.CtxWarn(c, "failed to bind request, err=%v", err)
@@ -45,11 +45,11 @@ func SessionManageLogin(c *gin.Context) {
 
 	// Set token
 	service.SetToken(c, req.Account, req.RememberMe, c.GetHeader(constant.RealIP))
-	OnSuccess(c, dto.SessionManageLoginResponse{NickName: users[0].NickName})
+	OnSuccess(c, dto.SessionLoginResponse{NickName: users[0].NickName})
 }
 
-func SessionManageSignup(c *gin.Context) {
-	req := dto.SessionManageSignupRequest{}
+func SessionSignup(c *gin.Context) {
+	req := dto.SessionSignupRequest{}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		logs.CtxWarn(c, "failed to bind request, err=%v", err)
@@ -58,7 +58,7 @@ func SessionManageSignup(c *gin.Context) {
 	}
 	logs.CtxInfo(c, "req=%v", utils.ToJSON(req))
 	// Parameter check
-	if req.Account == "" || req.Password == "" || req.NickName == "" || req.Gender == 0 {
+	if req.Account == "" || req.Password == "" || req.NickName == "" {
 		logs.CtxWarn(c, "required parameters are missing")
 		OnFail(c, constant.RequestParameterError)
 		return
@@ -86,6 +86,7 @@ func SessionManageSignup(c *gin.Context) {
 		Gender:           req.Gender,
 		SelfIntroduction: req.SelfIntroduction,
 		PreferTags:       utils.ToJSON(req.PreferTags),
+		DefaultLanguage:  req.DefaultLanguage,
 		CreateTime:       time.Now(),
 		UpdateTime:       time.Now(),
 	}
@@ -98,8 +99,8 @@ func SessionManageSignup(c *gin.Context) {
 	OnSuccess(c, nil)
 }
 
-func SessionManageLogout(c *gin.Context) {
-	req := dto.SessionManageLogoutRequest{}
+func SessionLogout(c *gin.Context) {
+	req := dto.SessionLogoutRequest{}
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		logs.CtxWarn(c, "failed to bind request, err=%v", err)

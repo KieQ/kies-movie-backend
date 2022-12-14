@@ -22,7 +22,7 @@ func HomepageContent(c *gin.Context) {
 	case "zh-cn":
 		lang, originalLang = "zh-CN", "zh"
 	}
-	year := time.Now().AddDate(0, -1, 0).Year() - rand.Intn(10)
+	year := time.Now().AddDate(0, -1, 0).Year() - rand.Intn(15)
 	var movie []map[string]interface{}
 	var tv []map[string]interface{}
 	eg := errgroup.Group{}

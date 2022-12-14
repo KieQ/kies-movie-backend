@@ -37,10 +37,10 @@ func Register(g *gin.Engine) {
 
 	g.GET("/ping", handler.Ping)
 
-	sessionManage := g.Group("/session_manage")
-	sessionManage.POST("/log_in", handler.SessionManageLogin)
-	sessionManage.POST("/sign_up", handler.SessionManageSignup)
-	sessionManage.POST("/log_out", handler.MiddlewareAuthority(), handler.SessionManageLogout)
+	session := g.Group("/session")
+	session.POST("/log_in", handler.SessionLogin)
+	session.POST("/sign_up", handler.SessionSignup)
+	session.POST("/log_out", handler.MiddlewareAuthority(), handler.SessionLogout)
 
 	user := g.Group("/user")
 	user.Use(handler.MiddlewareAuthority())
