@@ -14,9 +14,6 @@ func MiddlewareMetaInfo() gin.HandlerFunc {
 		c.Set(constant.RequestID, c.GetHeader(constant.RequestID))
 		c.Set(constant.RealIP, c.GetHeader(constant.RealIP))
 		c.Set(i18n.ContextLanguage, c.Query(constant.Lang))
-
-		c.Header("Access-Control-Allow-Origin", "*")
-
 	}
 }
 
