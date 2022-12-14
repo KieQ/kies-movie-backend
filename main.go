@@ -51,17 +51,17 @@ func Register(g *gin.Engine) {
 	homepage := g.Group("/homepage")
 	homepage.GET("/content", handler.HomepageContent)
 
-	movie := g.Group("/movie")
-	movie.Use(handler.MiddlewareAuthority())
-	movie.GET("/list", handler.MovieList)
-	movie.GET("/detail", handler.MovieDetail)
-	movie.POST("/like", handler.MovieLike)
-	movie.POST("/update", handler.MovieUpdate)
-	movie.POST("/add", handler.MovieAdd)
-	movie.POST("/delete", handler.MovieDelete)
+	video := g.Group("/video")
+	video.Use(handler.MiddlewareAuthority())
+	video.GET("/list", handler.VideoList)
+	video.GET("/detail", handler.VideoDetail)
+	video.POST("/like", handler.VideoLike)
+	video.POST("/update", handler.VideoUpdate)
+	video.POST("/add", handler.VideoAdd)
+	video.POST("/delete", handler.VideoDelete)
 
-	movieNotLogin := g.Group("/movie/not_login")
-	movieNotLogin.GET("/list", handler.NotLoginMovieList)
-	movieNotLogin.GET("/detail", handler.NotLoginMovieDetail)
+	videoNotLogin := g.Group("/video/not_login")
+	videoNotLogin.GET("/list", handler.NotLoginVideoList)
+	videoNotLogin.GET("/detail", handler.NotLoginVideoDetail)
 
 }
