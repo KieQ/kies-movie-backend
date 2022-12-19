@@ -35,3 +35,12 @@ func Sample[T any](samples []T, count int) []T {
 	}
 	return result
 }
+
+func Contain[T comparable](items []T, value T) bool {
+	for _, item := range items {
+		if item == value {
+			return true
+		}
+	}
+	return false
+}

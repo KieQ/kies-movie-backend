@@ -4,7 +4,6 @@ import (
 	"github.com/Kidsunbo/kie_toolbox_go/logs"
 	"github.com/gin-gonic/gin"
 	"kies-movie-backend/constant"
-	"kies-movie-backend/i18n"
 	"kies-movie-backend/service"
 	"kies-movie-backend/utils"
 )
@@ -13,9 +12,11 @@ func MiddlewareMetaInfo() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set(constant.RequestID, c.GetHeader(constant.RequestID))
 		c.Set(constant.RealIP, c.GetHeader(constant.RealIP))
-		c.Set(i18n.ContextLanguage, c.Query(constant.Lang))
+		s, _ := c.Cookie(constant.Language)
+		c.Set(constant.Language, s)
+		c.Header(constant.RequestID, c.GetHeader(constant.RequestID))
 
-		////TODO delete debug code
+		//TODO delete debug code
 		//c.Header("Access-Control-Allow-Origin", "http://localhost:5173")
 		//c.Header("Access-Control-Allow-Credentials", "true")
 	}

@@ -59,6 +59,7 @@ func Register(g *gin.Engine) {
 	video.POST("/update", handler.VideoUpdate)
 	video.POST("/add", handler.VideoAdd)
 	video.POST("/delete", handler.VideoDelete)
+	video.POST("/download", handler.VideoDownload)
 
 	videoNotLogin := g.Group("/video/not_login")
 	videoNotLogin.GET("/list", handler.NotLoginVideoList)

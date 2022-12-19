@@ -2,6 +2,8 @@ package table
 
 import "time"
 
+const NameUser = "t_user"
+
 type User struct {
 	ID               int64     `gorm:"column:id" json:"id"`
 	Account          string    `gorm:"column:account" json:"account"`
@@ -10,7 +12,7 @@ type User struct {
 	Profile          string    `gorm:"column:profile" json:"profile"`
 	Phone            string    `gorm:"column:phone" json:"phone"`
 	Email            string    `gorm:"column:email" json:"email"`
-	Gender           int32     `gorm:"column:gender" json:"gender"`
+	Gender           Gender    `gorm:"column:gender" json:"gender"`
 	SelfIntroduction string    `gorm:"column:self_introduction" json:"self_introduction"`
 	PreferTags       string    `gorm:"column:prefer_tags" json:"prefer_tags"`
 	DefaultLanguage  string    `gorm:"column:default_language" json:"default_language"`
@@ -18,6 +20,9 @@ type User struct {
 	UpdateTime       time.Time `gorm:"column:update_time" json:"update_time"`
 }
 
-func (u *User) Table() string {
-	return "t_user"
-}
+type Gender int32
+
+const (
+	Male Gender = iota
+	Female
+)

@@ -45,7 +45,7 @@ func SessionLogin(c *gin.Context) {
 
 	// Set token
 	service.SetToken(c, req.Account, req.RememberMe, c.GetHeader(constant.RealIP))
-	OnSuccess(c, dto.SessionLoginResponse{NickName: users[0].NickName, DefaultLanguage: users[0].DefaultLanguage})
+	OnSuccess(c, dto.SessionLoginResponse{NickName: users[0].NickName, DefaultLanguage: users[0].DefaultLanguage, Profile: users[0].Profile})
 }
 
 func SessionSignup(c *gin.Context) {
@@ -83,7 +83,7 @@ func SessionSignup(c *gin.Context) {
 		Profile:          req.Profile,
 		Phone:            req.Phone,
 		Email:            req.Email,
-		Gender:           req.Gender,
+		Gender:           table.Gender(req.Gender),
 		SelfIntroduction: req.SelfIntroduction,
 		PreferTags:       utils.ToJSON(req.PreferTags),
 		DefaultLanguage:  req.DefaultLanguage,

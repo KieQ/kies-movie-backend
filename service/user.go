@@ -16,7 +16,7 @@ func TransUserTableToDTO(user *table.User) *dto.User {
 		Profile:          user.Profile,
 		Phone:            user.Phone,
 		Email:            user.Email,
-		Gender:           user.Gender,
+		Gender:           int32(user.Gender),
 		SelfIntroduction: user.SelfIntroduction,
 		PreferTags:       utils.FromJSON[[]string](user.PreferTags),
 		CreateTime:       user.CreateTime.Unix(),

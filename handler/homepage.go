@@ -7,21 +7,22 @@ import (
 	"kies-movie-backend/dto"
 	"kies-movie-backend/i18n"
 	"kies-movie-backend/model/db"
+	"kies-movie-backend/model/table"
 	"math/rand"
 	"strconv"
 )
 
 func HomepageContent(c *gin.Context) {
-	lang := c.GetString(i18n.ContextLanguage)
+	lang := c.GetString(constant.Language)
 	where := make(map[string]interface{})
 	if len(lang) > 0 {
-		where["video_language"] = lang
+		where["region"] = lang
 	}
 
-	allVideo, err := db.GetVideoByType(c, []int{int(constant.VideoTypeMovie), int(constant.VideoTypeTV)}, where)
+	allVideo, err := db.GetVideoByType(c, []int{int(table.VideoTypeMovie), int(table.VideoTypeTV)}, where)
 	if err != nil {
 		logs.CtxWarn(c, "failed to get video, err=%v", err)
-		OnFailWithMessage(c, constant.FailedToProcess, i18n.NoMovieOrTVFound)
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
 		return
 	}
 

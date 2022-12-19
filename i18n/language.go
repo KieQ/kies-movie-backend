@@ -2,15 +2,14 @@ package i18n
 
 import (
 	"context"
+	"kies-movie-backend/constant"
 	"strings"
 )
 
-const ContextLanguage = "language"
-
 func Translate(ctx context.Context, index SentenceIndex) string {
 	var lang = ""
-	if ctx.Value(ContextLanguage) != nil {
-		if val, ok := ctx.Value(ContextLanguage).(string); ok {
+	if ctx.Value(constant.Language) != nil {
+		if val, ok := ctx.Value(constant.Language).(string); ok {
 			lang = val
 		}
 	}
@@ -18,7 +17,7 @@ func Translate(ctx context.Context, index SentenceIndex) string {
 		switch strings.ToLower(lang) {
 		case "", "en":
 			return val.English
-		case "zh-cn":
+		case "zh":
 			return val.Chinese
 		default:
 			return "unknown language"
