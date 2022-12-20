@@ -71,6 +71,8 @@ func VideoList(c *gin.Context) {
 		Size:  int32(pageVal),
 		Items: items,
 	}
+
+	logs.CtxInfo(c, "【KIE DEBUG】%v", utils.ToJSON(items))
 	OnSuccess(c, resp)
 }
 
@@ -91,7 +93,8 @@ func VideoLike(c *gin.Context) {
 	account := c.GetString(constant.Account)
 
 	rows, err := db.UpdateVideoByID(c, account, req.ID, map[string]interface{}{
-		"liked": req.Liked,
+		"liked":       req.Liked,
+		"update_time": time.Now(),
 	})
 	if err != nil {
 		logs.CtxWarn(c, "failed to update %v", req.ID)
@@ -242,5 +245,62 @@ func VideoDelete(c *gin.Context) {
 }
 
 func VideoDownload(c *gin.Context) {
+	OnSuccess(c, nil)
+}
+
+func VideoClone(c *gin.Context) {
+	req := dto.VideoCloneRequest{}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		logs.CtxWarn(c, "failed to bind request, err=%v", err)
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+	logs.CtxInfo(c, "req=%v", utils.ToJSON(req))
+
+	account := c.GetString(constant.Account)
+
+	videos, err := db.GetVideo(c, map[string]interface{}{"id": req.ID})
+	if err != nil {
+		logs.CtxWarn(c, "failed to get video, err=%v", err)
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
+		return
+	}
+
+	if len(videos) == 0 {
+		logs.CtxWarn(c, "can't find video, it might be deleted")
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.VideoMightBeDeleted)
+		return
+	}
+
+	video := videos[0]
+	if video.UserAccount == account {
+		logs.CtxWarn(c, "account and user account are the same")
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.CannotCloneYourOwnMovie)
+		return
+	}
+
+	err = db.AddVideo(c, &table.Video{
+		VideoName:        video.VideoName,
+		VideoDescription: video.VideoDescription,
+		VideoSize:        video.VideoSize,
+		VideoType:        video.VideoType,
+		Region:           video.Region,
+		Link:             video.Link,
+		LinkType:         video.LinkType,
+		Location:         video.Location,
+		PosterPath:       video.PosterPath,
+		BackdropPath:     video.BackdropPath,
+		UserAccount:      account,
+		Tags:             video.Tags,
+		Liked:            false,
+		CreateTime:       time.Now(),
+		UpdateTime:       time.Now(),
+	})
+	if err != nil {
+		logs.CtxWarn(c, "failed to add video, err=%v", err)
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToAddVideo)
+		return
+	}
 	OnSuccess(c, nil)
 }

@@ -16,7 +16,7 @@ func MiddlewareMetaInfo() gin.HandlerFunc {
 		c.Set(constant.Language, s)
 		c.Header(constant.RequestID, c.GetHeader(constant.RequestID))
 
-		//TODO delete debug code
+		////TODO delete debug code
 		//c.Header("Access-Control-Allow-Origin", "http://localhost:5173")
 		//c.Header("Access-Control-Allow-Credentials", "true")
 	}

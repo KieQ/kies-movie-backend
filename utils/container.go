@@ -44,3 +44,15 @@ func Contain[T comparable](items []T, value T) bool {
 	}
 	return false
 }
+
+func UniqueBy[T any, K comparable](items []T, f func(T) K) []T {
+	m := make(map[K]T, len(items))
+	for _, item := range items {
+		m[f(item)] = item
+	}
+	result := make([]T, 0, len(m))
+	for _, item := range m {
+		result = append(result, item)
+	}
+	return result
+}

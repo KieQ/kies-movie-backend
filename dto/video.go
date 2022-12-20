@@ -43,3 +43,7 @@ type VideoLikeRequest struct {
 	ID    int64 `json:"id"`
 	Liked bool  `json:"liked"`
 }
+
+type VideoCloneRequest struct {
+	ID int64 `json:"id"`
+}

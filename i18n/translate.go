@@ -17,9 +17,19 @@ const (
 	FailedToFindMovieOrTV
 	FailedToFindUsers
 	FailedToAddVideo
+	VideoMightBeDeleted
+	CannotCloneYourOwnMovie
 )
 
 var translate = map[SentenceIndex]sentence{
+	CannotCloneYourOwnMovie: {
+		English: "you cannot clone your own movie/TV",
+		Chinese: "你不能添加自己的电影/电视剧",
+	},
+	VideoMightBeDeleted: {
+		English: "video might be deleted, please refresh and retry",
+		Chinese: "视频可能已经被删除，请刷新后重试",
+	},
 	FailedToAddVideo: {
 		English: "failed to add video to database",
 		Chinese: "添加视频到数据库中失败",

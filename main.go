@@ -58,6 +58,7 @@ func Register(g *gin.Engine) {
 	video.POST("/like", handler.VideoLike)
 	video.POST("/update", handler.VideoUpdate)
 	video.POST("/add", handler.VideoAdd)
+	video.POST("/clone", handler.VideoClone)
 	video.POST("/delete", handler.VideoDelete)
 	video.POST("/download", handler.VideoDownload)
 

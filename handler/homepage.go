@@ -8,6 +8,7 @@ import (
 	"kies-movie-backend/i18n"
 	"kies-movie-backend/model/db"
 	"kies-movie-backend/model/table"
+	"kies-movie-backend/utils"
 	"math/rand"
 	"strconv"
 )
@@ -25,6 +26,8 @@ func HomepageContent(c *gin.Context) {
 		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
 		return
 	}
+
+	allVideo = utils.UniqueBy(allVideo, func(t *table.Video) string { return t.VideoName })
 
 	result := &dto.HomepageContentResponse{CarouselItems: make([]*dto.CarouselItem, 0, 3)}
 	for _, v := range rand.Perm(len(allVideo)) {
