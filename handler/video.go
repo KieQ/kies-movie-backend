@@ -2,10 +2,12 @@ package handler
 
 import (
 	"github.com/Kidsunbo/kie_toolbox_go/logs"
+	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"
 	"kies-movie-backend/constant"
+	"kies-movie-backend/download"
 	"kies-movie-backend/dto"
 	"kies-movie-backend/i18n"
 	"kies-movie-backend/model/db"
@@ -152,7 +154,7 @@ func VideoAdd(c *gin.Context) {
 			return
 		}
 		link = mi.Magnet(nil, nil).String()
-		linkType = strconv.FormatInt(int64(table.LinkTypeMagnet), 10)
+		linkType = "2"
 	}
 
 	//Video Type Check
@@ -180,28 +182,29 @@ func VideoAdd(c *gin.Context) {
 	}
 
 	//LinkType Check
-	linkTypeValueInt, err := strconv.ParseInt(linkType, 10, 64)
-	if err != nil {
-		logs.CtxWarn(c, "failed to parse linkType as int, linkType=%v", linkType)
-		OnFail(c, constant.RequestParameterError)
-		return
-	}
-	linkTypeValue := table.LinkType(linkTypeValueInt)
-	if !utils.Contain([]table.LinkType{table.LinkTypeLinkAddress, table.LinkTypeNoLink, table.LinkTypeMagnet}, linkTypeValue) {
-		logs.CtxWarn(c, "unknown linkType Value, linkTypeValue=%v", linkTypeValue)
+	var linkTypeValue = table.LinkTypeNoLink
+	switch linkType {
+	case "0":
+		linkTypeValue = table.LinkTypeNoLink
+	case "1":
+		linkTypeValue = table.LinkTypeLinkAddress
+	case "2", "3":
+		linkTypeValue = table.LinkTypeMagnet
+	default:
+		logs.CtxWarn(c, "unknown linkType Value, linkType=%v", linkType)
 		OnFail(c, constant.RequestParameterError)
 		return
 	}
 
-	err = db.AddVideo(c, &table.Video{
+	err := db.AddVideo(c, &table.Video{
 		VideoName:        name,
 		VideoDescription: description,
-		VideoSize:        0,
 		VideoType:        videoTypeValue,
 		Region:           region,
 		Link:             link,
 		LinkType:         linkTypeValue,
-		Location:         "",
+		Files:            "",
+		Downloaded:       false,
 		PosterPath:       posterPath,
 		BackdropPath:     backdropPath,
 		UserAccount:      account,
@@ -244,7 +247,131 @@ func VideoDelete(c *gin.Context) {
 	OnSuccess(c, nil)
 }
 
+func VideoAvailableFiles(c *gin.Context) {
+	idStr, ok := c.GetQuery("id")
+	if !ok {
+		logs.CtxWarn(c, "id does not exist")
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		logs.CtxWarn(c, "id is not integer, err=%v", err)
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+
+	account := c.GetString(constant.Account)
+
+	video, err := db.GetVideoByID(c, id)
+	if err != nil {
+		logs.CtxWarn(c, "failed to fetch video with id %v, err=%v", id, err)
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
+		return
+	}
+
+	if video.UserAccount != account {
+		logs.CtxWarn(c, "user account is not the same for id %v, account in context=%v, account of video=%v", id, account, video.UserAccount)
+		OnFail(c, constant.NoAuthority)
+		return
+	}
+
+	resp := dto.VideoAvailableFilesResponse{}
+	if video.LinkType == table.LinkTypeMagnet {
+		infoHash, files, timeout, err := download.ShowFilesInMagnet(c, video.Files, video.Link)
+		if err != nil {
+			logs.CtxWarn(c, "failed to retrieve files information with id %v", id)
+			OnFail(c, constant.FailedToProcess)
+			return
+		}
+
+		resp.InfoHash = infoHash
+		resp.Timeout = timeout
+		respFiles := make([]dto.VideoAvailableFileInfo, 0, len(files))
+		for _, item := range files {
+			respFiles = append(respFiles, dto.VideoAvailableFileInfo{
+				Path:            item.Path(),
+				DisplayPath:     item.DisplayPath(),
+				DownloadedBytes: item.BytesCompleted(),
+				TotalBytes:      item.Length(),
+				Downloading:     item.Priority() != torrent.PiecePriorityNone,
+			})
+		}
+		resp.Files = respFiles
+	} else if video.LinkType == table.LinkTypeLinkAddress {
+		resp.CanPlayDirectly = true
+		resp.Files = []dto.VideoAvailableFileInfo{{
+			Path:        video.Link,
+			DisplayPath: video.VideoName,
+		}}
+	} else if video.LinkType == table.LinkTypeNoLink {
+		logs.CtxWarn(c, "no link should not call this method, id=%v", id)
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.NoLinkCannotBeProcessed)
+		return
+	}
+	OnSuccess(c, resp)
+}
+
 func VideoDownload(c *gin.Context) {
+	req := dto.VideoDownloadRequest{}
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		logs.CtxWarn(c, "failed to bind request, err=%v", err)
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+	logs.CtxInfo(c, "req=%v", utils.ToJSON(req))
+
+	if len(req.Files) == 0 || len(req.InfoHash) == 0 {
+		logs.CtxWarn(c, "Files and InfoHash cannot be empty")
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+
+	account := c.GetString(constant.Account)
+
+	video, err := db.GetVideoByID(c, req.ID)
+	if err != nil {
+		logs.CtxWarn(c, "failed to fetch video, err=%v", err)
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
+		return
+	}
+
+	if video.UserAccount != account {
+		logs.CtxWarn(c, "no authority, account=%v, user_account=%v", account, video.UserAccount)
+		OnFail(c, constant.NoAuthority)
+		return
+	}
+
+	files, exist, err := download.StartDownloadSelectFileAsync(c, req.ID, account, req.InfoHash, req.Files)
+	if err != nil {
+		logs.CtxWarn(c, "failed to start download, err=%v", err)
+		OnFail(c, constant.FailedToProcess)
+		return
+	}
+	if !exist {
+		logs.CtxWarn(c, "infoHash %v is not added to downloadingMap", req.InfoHash)
+		OnFail(c, constant.FailedToProcess)
+		return
+	}
+
+	filenames := make([]string, 0, len(files))
+	for _, item := range files {
+		filenames = append(filenames, item.Path())
+	}
+	rows, err := db.UpdateVideoByID(c, account, req.ID, map[string]interface{}{"files": utils.ToJSON(filenames), "downloaded": false})
+	if err != nil {
+		logs.CtxWarn(c, "failed to update files, err=%v", err)
+		OnFail(c, constant.FailedToProcess)
+		return
+	}
+	if rows == 0 {
+		logs.CtxInfo(c, "movie might be removed")
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
+		return
+	}
+
 	OnSuccess(c, nil)
 }
 
@@ -260,20 +387,12 @@ func VideoClone(c *gin.Context) {
 
 	account := c.GetString(constant.Account)
 
-	videos, err := db.GetVideo(c, map[string]interface{}{"id": req.ID})
+	video, err := db.GetVideoByID(c, req.ID)
 	if err != nil {
 		logs.CtxWarn(c, "failed to get video, err=%v", err)
 		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
 		return
 	}
-
-	if len(videos) == 0 {
-		logs.CtxWarn(c, "can't find video, it might be deleted")
-		OnFailWithMessage(c, constant.FailedToProcess, i18n.VideoMightBeDeleted)
-		return
-	}
-
-	video := videos[0]
 	if video.UserAccount == account {
 		logs.CtxWarn(c, "account and user account are the same")
 		OnFailWithMessage(c, constant.FailedToProcess, i18n.CannotCloneYourOwnMovie)
@@ -283,12 +402,12 @@ func VideoClone(c *gin.Context) {
 	err = db.AddVideo(c, &table.Video{
 		VideoName:        video.VideoName,
 		VideoDescription: video.VideoDescription,
-		VideoSize:        video.VideoSize,
 		VideoType:        video.VideoType,
 		Region:           video.Region,
 		Link:             video.Link,
 		LinkType:         video.LinkType,
-		Location:         video.Location,
+		Files:            video.Files,
+		Downloaded:       video.Downloaded,
 		PosterPath:       video.PosterPath,
 		BackdropPath:     video.BackdropPath,
 		UserAccount:      account,

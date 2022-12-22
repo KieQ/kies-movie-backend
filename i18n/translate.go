@@ -17,18 +17,18 @@ const (
 	FailedToFindMovieOrTV
 	FailedToFindUsers
 	FailedToAddVideo
-	VideoMightBeDeleted
 	CannotCloneYourOwnMovie
+	NoLinkCannotBeProcessed
 )
 
 var translate = map[SentenceIndex]sentence{
+	NoLinkCannotBeProcessed: {
+		English: "video has no link, so you can't do this",
+		Chinese: "视频没有链接，因此不能进行此操作",
+	},
 	CannotCloneYourOwnMovie: {
 		English: "you cannot clone your own movie/TV",
 		Chinese: "你不能添加自己的电影/电视剧",
-	},
-	VideoMightBeDeleted: {
-		English: "video might be deleted, please refresh and retry",
-		Chinese: "视频可能已经被删除，请刷新后重试",
 	},
 	FailedToAddVideo: {
 		English: "failed to add video to database",

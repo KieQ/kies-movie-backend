@@ -46,6 +46,13 @@ func GetVideo(ctx context.Context, where map[string]interface{}) ([]*table.Video
 	return result, err
 }
 
+func GetVideoByID(ctx context.Context, id int64) (*table.Video, error) {
+	logs.CtxInfo(ctx, "id=%v", utils.ToJSON(id))
+	video := new(table.Video)
+	err := db.Table(table.NameVideo).Where("id = ?", id).Last(&video).Error
+	return video, err
+}
+
 func GetVideoCount(ctx context.Context, where map[string]interface{}) (int64, error) {
 	logs.CtxInfo(ctx, "where condition=%v", utils.ToJSON(where))
 	var count int64

@@ -8,12 +8,12 @@ type Video struct {
 	ID               int64     `gorm:"column:id" json:"id"`
 	VideoName        string    `gorm:"column:video_name" json:"video_name"`
 	VideoDescription string    `gorm:"column:video_description" json:"video_description"`
-	VideoSize        int64     `gorm:"column:video_size" json:"video_size"`
 	VideoType        VideoType `gorm:"column:video_type" json:"video_type"`
 	Region           string    `gorm:"column:region" json:"region"`
 	Link             string    `gorm:"column:link" json:"link"`
 	LinkType         LinkType  `gorm:"column:link_type" json:"link_type"`
-	Location         string    `gorm:"column:location" json:"location"` //Location on the disk
+	Files            string    `gorm:"column:files" json:"files"`
+	Downloaded       bool      `gorm:"column:downloaded" json:"downloaded"`
 	PosterPath       string    `gorm:"column:poster_path" json:"poster_path"`
 	BackdropPath     string    `gorm:"column:backdrop_path" json:"backdrop_path"`
 	UserAccount      string    `gorm:"column:user_account" json:"user_account"`

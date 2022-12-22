@@ -1,15 +1,12 @@
 package service
 
 import (
-	"context"
-	"errors"
-	"github.com/Kidsunbo/kie_toolbox_go/logs"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
+	"kies-movie-backend/download"
 	"kies-movie-backend/dto"
 	"kies-movie-backend/model/table"
 	"kies-movie-backend/utils"
-	"mime/multipart"
 )
 
 func TransForVideoListDTO(videos []*table.Video) []*dto.VideoListItem {
@@ -32,79 +29,88 @@ func TransForVideoListDTO(videos []*table.Video) []*dto.VideoListItem {
 
 		//VideoType
 		if utils.Contain([]table.VideoType{table.VideoTypeMovie, table.VideoTypeMoviePrivate}, oneVideo.VideoType) {
-			oneItem.VideoType = dto.VideoListItemVideoMovie
+			oneItem.VideoType = dto.ListVideoTypeMovie
 		} else if utils.Contain([]table.VideoType{table.VideoTypeTV, table.VideoTypeTVPrivate}, oneVideo.VideoType) {
-			oneItem.VideoType = dto.VideoListItemVideoTV
+			oneItem.VideoType = dto.ListVideoTypeTV
 		}
 
-		//Status
-		if oneVideo.Location == "" {
-			oneItem.Status = dto.VideoListItemStatusUnableToDownload
-		} else {
-			oneItem.Status = dto.VideoListItemStatusCanDownload
-			//TODO Downloader logic
+		//DownloadStatus
+		if oneVideo.LinkType == table.LinkTypeNoLink {
+			oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
+		} else if oneVideo.LinkType == table.LinkTypeLinkAddress {
+			oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
+		} else if oneVideo.LinkType == table.LinkTypeMagnet {
+			mag, err := metainfo.ParseMagnetUri(oneVideo.Link)
+			if err != nil {
+				oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
+			} else {
+				t, exist, err := download.GetFromDownloadingMap(mag.InfoHash.HexString())
+				if err != nil {
+					oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
+				} else if exist && len(t.DownloadingFiles) != 0 {
+					if t.AllFinished() {
+						oneItem.DownloadStatus = dto.ListDownloadStatusFinishDownload
+					} else if t.AllPause() {
+						oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
+					} else {
+						oneItem.DownloadStatus = dto.ListDownloadStatusDownloading
+					}
+				} else {
+					oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
+				}
+			}
+		}
+
+		//CanPlayFiles
+		if oneVideo.LinkType == table.LinkTypeLinkAddress {
+			oneItem.CanPlayFiles = []*dto.CanPlayFilesItem{{
+				Path:            oneVideo.Link,
+				DisplayPath:     oneVideo.VideoName,
+				DownloadedBytes: 0,
+				TotalBytes:      0,
+				CanPlay:         true,
+				Downloading:     false,
+			}}
+		} else if oneVideo.LinkType == table.LinkTypeMagnet {
+			var useDB bool
+			mag, err := metainfo.ParseMagnetUri(oneVideo.Link)
+			if err != nil {
+				useDB = true
+			} else {
+				t, exist, err := download.GetFromDownloadingMap(mag.InfoHash.HexString())
+				if err == nil && exist {
+					for _, file := range t.DownloadingFiles {
+						oneItem.CanPlayFiles = append(oneItem.CanPlayFiles, &dto.CanPlayFilesItem{
+							Path:            file.Path(),
+							DisplayPath:     file.DisplayPath(),
+							DownloadedBytes: file.BytesCompleted(),
+							TotalBytes:      file.Length(),
+							CanPlay:         file.BytesCompleted() == file.Length(),
+							Downloading:     file.Priority() != torrent.PiecePriorityNone,
+						})
+					}
+				} else {
+					useDB = true
+				}
+			}
+			if useDB && oneVideo.Files != "" && oneVideo.Downloaded {
+				files := utils.FromJSON[[]string](oneVideo.Files)
+				for _, file := range files {
+					fileSize := download.FileSize(file)
+					oneItem.CanPlayFiles = []*dto.CanPlayFilesItem{{
+						Path:            file,
+						DisplayPath:     download.GetNaiveDisplayPath(file),
+						DownloadedBytes: fileSize,
+						TotalBytes:      fileSize,
+						CanPlay:         fileSize != 0,
+						Downloading:     false,
+					}}
+				}
+			}
+
 		}
 
 		items = append(items, oneItem)
 	}
 	return items
-}
-
-func StartDownloadFromFile(ctx context.Context, fileHeader *multipart.FileHeader) error {
-	if fileHeader == nil {
-		logs.CtxWarn(ctx, "fileHeader is nil")
-		return errors.New("posted file is nil")
-	}
-	logs.CtxInfo(ctx, "filename=%v", fileHeader.Filename)
-	file, err := fileHeader.Open()
-	if err != nil {
-		logs.CtxWarn(ctx, "failed to open file, err=%v", err)
-		return err
-	}
-
-	mi, err := metainfo.Load(file)
-	if err != nil {
-		logs.CtxWarn(ctx, "failed to load file, err=%v", err)
-		return err
-	}
-
-	client, err := torrent.NewClient(nil)
-	if err != nil {
-		logs.CtxWarn(ctx, "failed to create client, err=%v", err)
-		return err
-	}
-
-	t, err := client.AddTorrent(mi)
-	if err != nil {
-		logs.CtxWarn(ctx, "failed to add torrent to client, err=%v", err)
-		return err
-	}
-
-	var total int64 = 0
-	for _, item := range t.Files() {
-		item.Download()
-		break
-	}
-
-	logs.CtxInfo(ctx, "%v, %v", t.Length(), total)
-	client.WaitAll()
-	return nil
-}
-
-func StartDownloadFromLink(ctx context.Context, link string) error {
-	client, err := torrent.NewClient(nil)
-	if err != nil {
-		logs.CtxWarn(ctx, "failed to create client, err=%v", err)
-		return err
-	}
-
-	t, err := client.AddMagnet(link)
-	if err != nil {
-		logs.CtxWarn(ctx, "failed to add torrent to client, err=%v", err)
-		return err
-	}
-
-	t.DownloadAll()
-
-	return nil
 }

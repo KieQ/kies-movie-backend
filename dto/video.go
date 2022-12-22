@@ -1,31 +1,25 @@
 package dto
 
-type VideoListItemStatus int64
-
-const (
-	VideoListItemStatusUnableToDownload VideoListItemStatus = iota
-	VideoListItemStatusCanDownload
-	VideoListItemStatusDownloading
-	VideoListItemStatusCanPlay
-)
-
-type VideoListItemVideoType int64
-
-const (
-	VideoListItemVideoMovie VideoListItemVideoType = iota
-	VideoListItemVideoTV
-)
+type CanPlayFilesItem struct {
+	Path            string `json:"path"`
+	DisplayPath     string `json:"display_path"`
+	DownloadedBytes int64  `json:"downloaded_bytes"`
+	TotalBytes      int64  `json:"total_bytes"`
+	CanPlay         bool   `json:"can_play"`
+	Downloading     bool   `json:"downloading"`
+}
 
 type VideoListItem struct {
-	ID          int64                  `json:"id"`
-	Status      VideoListItemStatus    `json:"status"`
-	IsPublic    bool                   `json:"is_public"`
-	Region      string                 `json:"region"`
-	PosterPath  string                 `json:"poster_path"`
-	Title       string                 `json:"title"`
-	Liked       bool                   `json:"liked"`
-	Description string                 `json:"description"`
-	VideoType   VideoListItemVideoType `json:"video_type"`
+	ID             int64               `json:"id"`
+	DownloadStatus ListDownloadStatus  `json:"download_status"`
+	CanPlayFiles   []*CanPlayFilesItem `json:"can_play_files"`
+	IsPublic       bool                `json:"is_public"`
+	Region         string              `json:"region"`
+	PosterPath     string              `json:"poster_path"`
+	Title          string              `json:"title"`
+	Liked          bool                `json:"liked"`
+	Description    string              `json:"description"`
+	VideoType      ListVideoType       `json:"video_type"`
 }
 
 type VideoListResponse struct {
@@ -46,4 +40,25 @@ type VideoLikeRequest struct {
 
 type VideoCloneRequest struct {
 	ID int64 `json:"id"`
+}
+
+type VideoAvailableFileInfo struct {
+	Path            string `json:"path"`
+	DisplayPath     string `json:"display_path"`
+	DownloadedBytes int64  `json:"downloaded_bytes"`
+	TotalBytes      int64  `json:"total_bytes"`
+	Downloading     bool   `json:"downloading"`
+}
+
+type VideoAvailableFilesResponse struct {
+	CanPlayDirectly bool                     `json:"can_play_directly"`
+	Timeout         bool                     `json:"timeout"`
+	InfoHash        string                   `json:"info_hash"`
+	Files           []VideoAvailableFileInfo `json:"files"`
+}
+
+type VideoDownloadRequest struct {
+	ID       int64    `json:"id"`
+	InfoHash string   `json:"info_hash"`
+	Files    []string `json:"files"`
 }

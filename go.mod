@@ -10,6 +10,7 @@ require (
 
 require (
 	crawshaw.io/sqlite v0.3.3-0.20210127221821-98b1f83c5508 // indirect
+	github.com/Kidsunbo/kie_toolbox_go/container v0.0.0-20221128085724-fae4c95b71b1 // indirect
 	github.com/Kidsunbo/kie_toolbox_go/logs v0.0.0-20221128085724-fae4c95b71b1 // indirect
 	github.com/RoaringBitmap/roaring v1.2.1 // indirect
 	github.com/ajwerner/btree v0.0.0-20211221152037-f427b3e689c0 // indirect

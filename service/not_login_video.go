@@ -1,6 +1,8 @@
 package service
 
 import (
+	"github.com/anacrolix/torrent/metainfo"
+	"kies-movie-backend/download"
 	"kies-movie-backend/dto"
 	"kies-movie-backend/model/table"
 	"kies-movie-backend/utils"
@@ -30,17 +32,36 @@ func TransForNotLoginVideoListDTO(videos []*table.Video, userInfo []*table.User)
 
 		//VideoType
 		if utils.Contain([]table.VideoType{table.VideoTypeMovie, table.VideoTypeMoviePrivate}, oneVideo.VideoType) {
-			oneItem.VideoType = dto.VideoListItemVideoMovie
+			oneItem.VideoType = dto.ListVideoTypeMovie
 		} else if utils.Contain([]table.VideoType{table.VideoTypeTV, table.VideoTypeTVPrivate}, oneVideo.VideoType) {
-			oneItem.VideoType = dto.VideoListItemVideoTV
+			oneItem.VideoType = dto.ListVideoTypeTV
 		}
 
-		//Status
-		if oneVideo.Location == "" {
-			oneItem.Status = dto.VideoListItemStatusUnableToDownload
-		} else {
-			oneItem.Status = dto.VideoListItemStatusCanDownload
-			//TODO Downloader logic
+		//DownloadStatus
+		if oneVideo.LinkType == table.LinkTypeNoLink {
+			oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
+		} else if oneVideo.LinkType == table.LinkTypeLinkAddress {
+			oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
+		} else if oneVideo.LinkType == table.LinkTypeMagnet {
+			mag, err := metainfo.ParseMagnetUri(oneVideo.Link)
+			if err != nil {
+				oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
+			} else {
+				t, exist, err := download.GetFromDownloadingMap(mag.InfoHash.HexString())
+				if err != nil {
+					oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
+				} else if exist && len(t.DownloadingFiles) != 0 {
+					if t.AllFinished() {
+						oneItem.DownloadStatus = dto.ListDownloadStatusFinishDownload
+					} else if t.AllPause() {
+						oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
+					} else {
+						oneItem.DownloadStatus = dto.ListDownloadStatusDownloading
+					}
+				} else {
+					oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
+				}
+			}
 		}
 
 		items = append(items, oneItem)
