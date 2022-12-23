@@ -1,12 +1,13 @@
 package dto
 
 type CanPlayFilesItem struct {
-	Path            string `json:"path"`
-	DisplayPath     string `json:"display_path"`
-	DownloadedBytes int64  `json:"downloaded_bytes"`
-	TotalBytes      int64  `json:"total_bytes"`
-	CanPlay         bool   `json:"can_play"`
-	Downloading     bool   `json:"downloading"`
+	Path             string `json:"path"`
+	DisplayPath      string `json:"display_path"`
+	DownloadedBytes  int64  `json:"downloaded_bytes"`
+	TotalBytes       int64  `json:"total_bytes"`
+	CanPlay          bool   `json:"can_play"`
+	Downloading      bool   `json:"downloading"`
+	VideoOnOtherSite bool   `json:"video_on_other_site"`
 }
 
 type VideoListItem struct {
@@ -51,10 +52,9 @@ type VideoAvailableFileInfo struct {
 }
 
 type VideoAvailableFilesResponse struct {
-	CanPlayDirectly bool                     `json:"can_play_directly"`
-	Timeout         bool                     `json:"timeout"`
-	InfoHash        string                   `json:"info_hash"`
-	Files           []VideoAvailableFileInfo `json:"files"`
+	Timeout  bool                     `json:"timeout"`
+	InfoHash string                   `json:"info_hash"`
+	Files    []VideoAvailableFileInfo `json:"files"`
 }
 
 type VideoDownloadRequest struct {

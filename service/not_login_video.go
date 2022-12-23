@@ -41,7 +41,7 @@ func TransForNotLoginVideoListDTO(videos []*table.Video, userInfo []*table.User)
 		if oneVideo.LinkType == table.LinkTypeNoLink {
 			oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
 		} else if oneVideo.LinkType == table.LinkTypeLinkAddress {
-			oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
+			oneItem.DownloadStatus = dto.ListDownloadStatusFinishDownload
 		} else if oneVideo.LinkType == table.LinkTypeMagnet {
 			mag, err := metainfo.ParseMagnetUri(oneVideo.Link)
 			if err != nil {
@@ -59,7 +59,11 @@ func TransForNotLoginVideoListDTO(videos []*table.Video, userInfo []*table.User)
 						oneItem.DownloadStatus = dto.ListDownloadStatusDownloading
 					}
 				} else {
-					oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
+					if oneVideo.Downloaded {
+						oneItem.DownloadStatus = dto.ListDownloadStatusFinishDownload
+					} else {
+						oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
+					}
 				}
 			}
 		}

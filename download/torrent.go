@@ -9,6 +9,7 @@ import (
 	"kies-movie-backend/model/db"
 	"kies-movie-backend/utils"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -149,17 +150,29 @@ func StartDownloadSelectFileAsync(ctx context.Context, id int64, account, infoHa
 	}
 
 	//Delete the no needed files
-	deleteFiles := make([]*torrent.File, 0, len(lastTime))
+	stoppedFile := make([]*torrent.File, 0, len(lastTime))
 	for _, v := range lastTime {
 		if v != nil {
-			deleteFiles = append(deleteFiles, v)
+			stoppedFile = append(stoppedFile, v)
 		}
 	}
-	DeleteFiles(ctx, deleteFiles)
+
+	deleteFiles := StopDownload(ctx, stoppedFile)
+	stillThere := DeleteFiles(ctx, deleteFiles)
 
 	go func() {
 		tick := time.Tick(time.Minute)
 		for range tick {
+			downloadOK := false
+			deleteOK := false
+			//Delete
+			if len(stillThere) != 0 {
+				stillThere = DeleteFiles(ctx, stillThere)
+			} else {
+				deleteOK = true
+			}
+
+			//Download
 			if item.AllFinished() {
 				rows, err := db.UpdateVideoByID(ctx, account, id, map[string]interface{}{
 					"downloaded": true,
@@ -170,6 +183,11 @@ func StartDownloadSelectFileAsync(ctx context.Context, id int64, account, infoHa
 				}
 				item.Torrent.Drop()
 				downloadingMap.Delete(infoHash)
+				downloadOK = true
+			}
+
+			//Check if flow need return
+			if deleteOK && downloadOK {
 				return
 			}
 		}
@@ -178,14 +196,36 @@ func StartDownloadSelectFileAsync(ctx context.Context, id int64, account, infoHa
 	return item.DownloadingFiles, true, nil
 }
 
-func DeleteFiles(ctx context.Context, files []*torrent.File) {
+func StopDownload(ctx context.Context, files []*torrent.File) []string {
+	stoppedFile := make([]string, 0, len(files))
 	for _, item := range files {
 		item.SetPriority(torrent.PiecePriorityNone)
-		err := os.Remove(DataDir + item.Path())
-		if err != nil && !errors.Is(err, os.ErrNotExist) {
+		fileLocation := WrapPath(item.Path())
+		stoppedFile = append(stoppedFile, fileLocation)
+	}
+	logs.CtxInfo(ctx, "stopped files: %v", utils.ToJSON(stoppedFile))
+	return stoppedFile
+}
+
+func WrapPath(filePath string) string {
+	return path.Join(DataDir, filePath)
+}
+
+//DeleteFiles delete the files and return the undeleted files，be sure the path is exact one.
+func DeleteFiles(ctx context.Context, files []string) []string {
+	stillThere := make([]string, 0, len(files))
+	for _, fileLocation := range files {
+		err := os.Remove(fileLocation)
+		if err != nil {
 			logs.CtxError(ctx, "failed to delete file, err=%v", err)
 		}
+		_, e := os.Stat(fileLocation)
+		if !os.IsNotExist(e) {
+			stillThere = append(stillThere, fileLocation)
+		}
 	}
+	logs.CtxInfo(ctx, "still there files: %v", utils.ToJSON(stillThere))
+	return stillThere
 }
 
 func GetNaiveDisplayPath(path string) string {
@@ -196,8 +236,8 @@ func GetNaiveDisplayPath(path string) string {
 	return path
 }
 
-func FileSize(path string) int64 {
-	file, err := os.Stat(path)
+func FileSize(nativePath string) int64 {
+	file, err := os.Stat(WrapPath(nativePath))
 	if err != nil {
 		return 0
 	}

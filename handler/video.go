@@ -233,6 +233,19 @@ func VideoDelete(c *gin.Context) {
 	logs.CtxInfo(c, "req=%v", utils.ToJSON(req))
 
 	account := c.GetString(constant.Account)
+
+	video, err := db.GetVideoByID(c, req.ID)
+	if err != nil {
+		logs.CtxWarn(c, "failed to fetch video, err=%v", err)
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
+		return
+	}
+	if video.UserAccount != account {
+		logs.CtxWarn(c, "user account is not the same for id %v, account in context=%v, account of video=%v", req.ID, account, video.UserAccount)
+		OnFail(c, constant.NoAuthority)
+		return
+	}
+
 	rows, err := db.DeleteVideoByID(c, account, req.ID)
 	if err != nil {
 		logs.CtxWarn(c, "failed to delete %v", req.ID)
@@ -244,6 +257,24 @@ func VideoDelete(c *gin.Context) {
 		OnFail(c, constant.NoAuthority)
 		return
 	}
+
+	if video.Files != "" {
+		go func() {
+			filenames := utils.FromJSON[[]string](video.Files)
+			deletedFiles := make([]string, 0, len(filenames))
+			for _, filename := range filenames {
+				deletedFiles = append(deletedFiles, download.WrapPath(filename))
+			}
+			for i := 0; i < 10; i++ {
+				deletedFiles = download.DeleteFiles(c, deletedFiles)
+				if len(deletedFiles) == 0 {
+					break
+				}
+				time.Sleep(time.Second)
+			}
+		}()
+	}
+
 	OnSuccess(c, nil)
 }
 
@@ -299,13 +330,7 @@ func VideoAvailableFiles(c *gin.Context) {
 			})
 		}
 		resp.Files = respFiles
-	} else if video.LinkType == table.LinkTypeLinkAddress {
-		resp.CanPlayDirectly = true
-		resp.Files = []dto.VideoAvailableFileInfo{{
-			Path:        video.Link,
-			DisplayPath: video.VideoName,
-		}}
-	} else if video.LinkType == table.LinkTypeNoLink {
+	} else {
 		logs.CtxWarn(c, "no link should not call this method, id=%v", id)
 		OnFailWithMessage(c, constant.FailedToProcess, i18n.NoLinkCannotBeProcessed)
 		return

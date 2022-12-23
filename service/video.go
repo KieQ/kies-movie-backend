@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/Kidsunbo/kie_toolbox_go/logs"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"kies-movie-backend/download"
@@ -42,21 +43,31 @@ func TransForVideoListDTO(videos []*table.Video) []*dto.VideoListItem {
 		} else if oneVideo.LinkType == table.LinkTypeMagnet {
 			mag, err := metainfo.ParseMagnetUri(oneVideo.Link)
 			if err != nil {
+				logs.Info("%v, #1", oneVideo.ID)
 				oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
 			} else {
 				t, exist, err := download.GetFromDownloadingMap(mag.InfoHash.HexString())
 				if err != nil {
+					logs.Info("%v, #2", oneVideo.ID)
 					oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
 				} else if exist && len(t.DownloadingFiles) != 0 {
 					if t.AllFinished() {
+						logs.Info("%v, #3", oneVideo.ID)
 						oneItem.DownloadStatus = dto.ListDownloadStatusFinishDownload
 					} else if t.AllPause() {
+						logs.Info("%v, #4", oneVideo.ID)
 						oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
 					} else {
+						logs.Info("%v, #5", oneVideo.ID)
 						oneItem.DownloadStatus = dto.ListDownloadStatusDownloading
 					}
 				} else {
-					oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
+					if oneVideo.Downloaded {
+						oneItem.DownloadStatus = dto.ListDownloadStatusFinishDownload
+					} else {
+						logs.Info("%v, #6", oneVideo.ID)
+						oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
+					}
 				}
 			}
 		}
@@ -64,12 +75,13 @@ func TransForVideoListDTO(videos []*table.Video) []*dto.VideoListItem {
 		//CanPlayFiles
 		if oneVideo.LinkType == table.LinkTypeLinkAddress {
 			oneItem.CanPlayFiles = []*dto.CanPlayFilesItem{{
-				Path:            oneVideo.Link,
-				DisplayPath:     oneVideo.VideoName,
-				DownloadedBytes: 0,
-				TotalBytes:      0,
-				CanPlay:         true,
-				Downloading:     false,
+				Path:             oneVideo.Link,
+				DisplayPath:      oneVideo.VideoName,
+				DownloadedBytes:  0,
+				TotalBytes:       0,
+				CanPlay:          true,
+				Downloading:      false,
+				VideoOnOtherSite: true,
 			}}
 		} else if oneVideo.LinkType == table.LinkTypeMagnet {
 			var useDB bool
@@ -81,12 +93,13 @@ func TransForVideoListDTO(videos []*table.Video) []*dto.VideoListItem {
 				if err == nil && exist {
 					for _, file := range t.DownloadingFiles {
 						oneItem.CanPlayFiles = append(oneItem.CanPlayFiles, &dto.CanPlayFilesItem{
-							Path:            file.Path(),
-							DisplayPath:     file.DisplayPath(),
-							DownloadedBytes: file.BytesCompleted(),
-							TotalBytes:      file.Length(),
-							CanPlay:         file.BytesCompleted() == file.Length(),
-							Downloading:     file.Priority() != torrent.PiecePriorityNone,
+							Path:             file.Path(),
+							DisplayPath:      file.DisplayPath(),
+							DownloadedBytes:  file.BytesCompleted(),
+							TotalBytes:       file.Length(),
+							CanPlay:          file.BytesCompleted() == file.Length(),
+							Downloading:      file.Priority() != torrent.PiecePriorityNone,
+							VideoOnOtherSite: false,
 						})
 					}
 				} else {
@@ -97,14 +110,15 @@ func TransForVideoListDTO(videos []*table.Video) []*dto.VideoListItem {
 				files := utils.FromJSON[[]string](oneVideo.Files)
 				for _, file := range files {
 					fileSize := download.FileSize(file)
-					oneItem.CanPlayFiles = []*dto.CanPlayFilesItem{{
-						Path:            file,
-						DisplayPath:     download.GetNaiveDisplayPath(file),
-						DownloadedBytes: fileSize,
-						TotalBytes:      fileSize,
-						CanPlay:         fileSize != 0,
-						Downloading:     false,
-					}}
+					oneItem.CanPlayFiles = append(oneItem.CanPlayFiles, &dto.CanPlayFilesItem{
+						Path:             file,
+						DisplayPath:      download.GetNaiveDisplayPath(file),
+						DownloadedBytes:  fileSize,
+						TotalBytes:       fileSize,
+						CanPlay:          fileSize != 0,
+						Downloading:      false,
+						VideoOnOtherSite: false,
+					})
 				}
 			}
 
