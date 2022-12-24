@@ -47,6 +47,7 @@ var downloadingMap sync.Map
 func init() {
 	config := torrent.NewDefaultClientConfig()
 	config.DataDir = DataDir
+	config.Seed = false
 	var err error
 	downloader, err = torrent.NewClient(config)
 	if err != nil {
@@ -181,8 +182,8 @@ func StartDownloadSelectFileAsync(ctx context.Context, id int64, account, infoHa
 					logs.CtxWarn(ctx, "failed to update downloaded, err=%v, rows=%v", err, rows)
 					continue
 				}
-				item.Torrent.Drop()
-				downloadingMap.Delete(infoHash)
+				//item.Torrent.Drop()
+				//downloadingMap.Delete(infoHash)
 				downloadOK = true
 			}
 

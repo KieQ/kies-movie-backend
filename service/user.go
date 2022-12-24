@@ -10,7 +10,7 @@ func TransUserTableToDTO(user *table.User) *dto.User {
 	if user == nil {
 		return nil
 	}
-	return &dto.User{
+	result := &dto.User{
 		Account:          user.Account,
 		NickName:         user.NickName,
 		Profile:          user.Profile,
@@ -21,4 +21,5 @@ func TransUserTableToDTO(user *table.User) *dto.User {
 		PreferTags:       utils.FromJSON[[]string](user.PreferTags),
 		CreateTime:       user.CreateTime.Unix(),
 	}
+	return result
 }

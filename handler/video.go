@@ -79,7 +79,54 @@ func VideoList(c *gin.Context) {
 }
 
 func VideoDetail(c *gin.Context) {
-	OnSuccess(c, nil)
+	idStr := c.Query("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		logs.CtxWarn(c, "failed to parse idStr %v", idStr)
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+	logs.CtxInfo(c, "id=%v", id)
+
+	account := c.GetString(constant.Account)
+	video, err := db.GetVideoByID(c, id)
+	if err != nil {
+		logs.CtxWarn(c, "failed to fetch video, err=%v", err)
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
+		return
+	}
+	if video.UserAccount != account {
+		logs.CtxWarn(c, "user account is not the same for id %v, account in context=%v, account of video=%v", id, account, video.UserAccount)
+		OnFail(c, constant.NoAuthority)
+		return
+	}
+
+	resp := &dto.VideoDetailResponse{
+		ID:           video.ID,
+		Name:         video.VideoName,
+		Description:  video.VideoDescription,
+		VideoType:    video.VideoType,
+		Region:       video.Region,
+		Link:         video.Link,
+		Files:        video.Files,
+		Downloaded:   video.Downloaded,
+		PosterPath:   video.PosterPath,
+		BackdropPath: video.BackdropPath,
+		UserAccount:  video.UserAccount,
+		Tags:         video.Tags,
+		Liked:        video.Liked,
+	}
+
+	switch video.LinkType {
+	case table.LinkTypeNoLink:
+		resp.LinkType = "0"
+	case table.LinkTypeLinkAddress:
+		resp.LinkType = "1"
+	case table.LinkTypeMagnet:
+		resp.LinkType = "2"
+	}
+
+	OnSuccess(c, resp)
 }
 
 func VideoLike(c *gin.Context) {
@@ -112,6 +159,116 @@ func VideoLike(c *gin.Context) {
 }
 
 func VideoUpdate(c *gin.Context) {
+	idStr := c.PostForm("id")
+	name := c.PostForm("name")
+	description := c.PostForm("description")
+	posterPath := c.PostForm("poster_path")
+	region := c.PostForm("region")
+	videoType := c.PostForm("video_type")
+	link := c.PostForm("link")
+	linkType := c.PostForm("link_type")
+	backdropPath := c.PostForm("backdrop_path")
+
+	if idStr == "" || name == "" || posterPath == "" || region == "" || linkType == "" || videoType == "" {
+		logs.CtxWarn(c, "needed data is missing, id=%v, name=%v, posterPath=%v, region=%v, linkType=%v, videoType=%v", idStr, name, posterPath, region, linkType, videoType)
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		logs.CtxWarn(c, "failed to parse idStr %v, err=%v", idStr, err)
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+
+	account := c.GetString(constant.Account)
+
+	//For torrent file, translate it to magnet and store in the db
+	if linkType == "3" {
+		file, err := c.FormFile("link_file")
+		if err != nil {
+			logs.CtxWarn(c, "failed to get file, err=%v", err)
+			OnFail(c, constant.RequestParameterError)
+			return
+		}
+		reader, err := file.Open()
+		if err != nil {
+			logs.CtxWarn(c, "failed to open file, err=%v", err)
+			OnFail(c, constant.RequestParameterError)
+			return
+		}
+		mi, err := metainfo.Load(reader)
+		if err != nil {
+			logs.CtxWarn(c, "failed to load meta info from file, err=%v", err)
+			OnFail(c, constant.FailedToProcess)
+			return
+		}
+		link = mi.Magnet(nil, nil).String()
+		linkType = "2"
+	}
+
+	//Video Type Check
+	var videoTypeValue table.VideoType
+	switch videoType {
+	case "0":
+		videoTypeValue = table.VideoTypeMovie
+	case "1":
+		videoTypeValue = table.VideoTypeTV
+	case "2":
+		videoTypeValue = table.VideoTypeMoviePrivate
+	case "3":
+		videoTypeValue = table.VideoTypeTVPrivate
+	default:
+		logs.CtxWarn(c, "unknown video type, videoType=%v", videoType)
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+
+	//Region Check
+	if !utils.Contain([]string{"en", "zh", "jp"}, region) {
+		logs.CtxWarn(c, "unknown region, region=%v", region)
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+
+	//LinkType Check
+	var linkTypeValue = table.LinkTypeNoLink
+	switch linkType {
+	case "0":
+		linkTypeValue = table.LinkTypeNoLink
+	case "1":
+		linkTypeValue = table.LinkTypeLinkAddress
+	case "2", "3":
+		linkTypeValue = table.LinkTypeMagnet
+	default:
+		logs.CtxWarn(c, "unknown linkType Value, linkType=%v", linkType)
+		OnFail(c, constant.RequestParameterError)
+		return
+	}
+
+	rows, err := db.UpdateVideoByID(c, account, id, map[string]interface{}{
+		"video_name":        name,
+		"video_description": description,
+		"video_type":        videoTypeValue,
+		"region":            region,
+		"link":              link,
+		"link_type":         linkTypeValue,
+		"poster_path":       posterPath,
+		"backdrop_path":     backdropPath,
+		"update_time":       time.Now(),
+	})
+	if err != nil {
+		logs.CtxWarn(c, "failed to update video to database, err=%v", err)
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToAddVideo)
+		return
+	}
+	if rows == 0 {
+		logs.CtxInfo(c, "movie might be removed")
+		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
+		return
+	}
+
 	OnSuccess(c, nil)
 }
 

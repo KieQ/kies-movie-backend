@@ -1,5 +1,7 @@
 package dto
 
+import "kies-movie-backend/model/table"
+
 type CanPlayFilesItem struct {
 	Path             string `json:"path"`
 	DisplayPath      string `json:"display_path"`
@@ -61,4 +63,21 @@ type VideoDownloadRequest struct {
 	ID       int64    `json:"id"`
 	InfoHash string   `json:"info_hash"`
 	Files    []string `json:"files"`
+}
+
+type VideoDetailResponse struct {
+	ID           int64           `json:"id"`
+	Name         string          `json:"name"`
+	Description  string          `json:"description"`
+	VideoType    table.VideoType `json:"video_type"`
+	Region       string          `json:"region"`
+	Link         string          `json:"link"`
+	LinkType     string          `json:"link_type"`
+	Files        string          `json:"files"`
+	Downloaded   bool            `json:"downloaded"`
+	PosterPath   string          `json:"poster_path"`
+	BackdropPath string          `json:"backdrop_path"`
+	UserAccount  string          `json:"user_account"`
+	Tags         string          `json:"tags"`
+	Liked        bool            `json:"liked"`
 }

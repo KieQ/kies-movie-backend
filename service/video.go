@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/Kidsunbo/kie_toolbox_go/logs"
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"kies-movie-backend/download"
@@ -43,29 +42,23 @@ func TransForVideoListDTO(videos []*table.Video) []*dto.VideoListItem {
 		} else if oneVideo.LinkType == table.LinkTypeMagnet {
 			mag, err := metainfo.ParseMagnetUri(oneVideo.Link)
 			if err != nil {
-				logs.Info("%v, #1", oneVideo.ID)
 				oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
 			} else {
 				t, exist, err := download.GetFromDownloadingMap(mag.InfoHash.HexString())
 				if err != nil {
-					logs.Info("%v, #2", oneVideo.ID)
 					oneItem.DownloadStatus = dto.ListDownloadStatusCannotDownload
 				} else if exist && len(t.DownloadingFiles) != 0 {
 					if t.AllFinished() {
-						logs.Info("%v, #3", oneVideo.ID)
 						oneItem.DownloadStatus = dto.ListDownloadStatusFinishDownload
 					} else if t.AllPause() {
-						logs.Info("%v, #4", oneVideo.ID)
 						oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
 					} else {
-						logs.Info("%v, #5", oneVideo.ID)
 						oneItem.DownloadStatus = dto.ListDownloadStatusDownloading
 					}
 				} else {
 					if oneVideo.Downloaded {
 						oneItem.DownloadStatus = dto.ListDownloadStatusFinishDownload
 					} else {
-						logs.Info("%v, #6", oneVideo.ID)
 						oneItem.DownloadStatus = dto.ListDownloadStatusCanDownload
 					}
 				}
