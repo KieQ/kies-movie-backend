@@ -14,13 +14,7 @@ import (
 )
 
 func HomepageContent(c *gin.Context) {
-	lang := c.GetString(constant.Language)
-	where := make(map[string]interface{})
-	if len(lang) > 0 {
-		where["region"] = lang
-	}
-
-	allVideo, err := db.GetVideoByType(c, []int{int(table.VideoTypeMovie), int(table.VideoTypeTV)}, where)
+	allVideo, err := db.GetVideoByType(c, []int{int(table.VideoTypeMovie), int(table.VideoTypeTV)}, nil)
 	if err != nil {
 		logs.CtxWarn(c, "failed to get video, err=%v", err)
 		OnFailWithMessage(c, constant.FailedToProcess, i18n.FailedToFindMovieOrTV)
