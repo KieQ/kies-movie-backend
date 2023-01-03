@@ -423,7 +423,7 @@ func VideoDelete(c *gin.Context) {
 				deletedFiles = append(deletedFiles, download.WrapPath(filename))
 			}
 			for i := 0; i < 10; i++ {
-				deletedFiles = download.DeleteFiles(c, deletedFiles)
+				deletedFiles = download.DeleteWholeDirectory(c, deletedFiles)
 				if len(deletedFiles) == 0 {
 					break
 				}

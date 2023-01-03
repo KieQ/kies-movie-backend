@@ -90,7 +90,6 @@ func ShowFilesInMagnet(ctx context.Context, filesInDB, link string) (string, []*
 			DownloadingFiles: nil,
 			Torrent:          t,
 		}
-		downloadingMap.Store(t.InfoHash().HexString(), v)
 	} else {
 		t = v.Torrent
 	}
@@ -110,6 +109,7 @@ func ShowFilesInMagnet(ctx context.Context, filesInDB, link string) (string, []*
 				}
 			}
 		}
+		downloadingMap.Store(t.InfoHash().HexString(), v)
 	case <-timer:
 		return "", nil, true, nil
 	}
@@ -226,6 +226,32 @@ func DeleteFiles(ctx context.Context, files []string) []string {
 		}
 	}
 	logs.CtxInfo(ctx, "still there files: %v", utils.ToJSON(stillThere))
+	return stillThere
+}
+
+//DeleteWholeDirectory delete the whole directory and return the undeleted files and directories.
+func DeleteWholeDirectory(ctx context.Context, files []string) []string {
+	set := container.NewSet[string]()
+	for _, file := range files {
+		paths := strings.SplitN(file, "/", 2)
+		if len(paths) == 0 {
+			continue
+		} else {
+			set.Add(paths[0])
+		}
+	}
+
+	stillThere := make([]string, 0, set.Size())
+	for fileLocation := range set.Range() {
+		err := os.RemoveAll(fileLocation)
+		if err != nil {
+			logs.CtxError(ctx, "failed to delete file, err=%v", err)
+		}
+		_, e := os.Stat(fileLocation)
+		if !os.IsNotExist(e) {
+			stillThere = append(stillThere, fileLocation)
+		}
+	}
 	return stillThere
 }
 
