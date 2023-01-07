@@ -403,6 +403,7 @@ func VideoDelete(c *gin.Context) {
 		return
 	}
 
+	//Delete from DB
 	rows, err := db.DeleteVideoByID(c, account, req.ID)
 	if err != nil {
 		logs.CtxWarn(c, "failed to delete %v", req.ID)
@@ -415,16 +416,22 @@ func VideoDelete(c *gin.Context) {
 		return
 	}
 
+	//Remove from downloadingMap
+	mag, err := metainfo.ParseMagnetUri(video.Link)
+	if err == nil {
+		if v, exist, _ := download.GetFromDownloadingMap(mag.InfoHash.HexString()); exist {
+			v.Torrent.Drop()
+			download.RemoveFromDownloadingMap(mag.InfoHash.HexString())
+		}
+	}
+
+	//Delete downloaded files
 	if video.Files != "" {
 		go func() {
 			filenames := utils.FromJSON[[]string](video.Files)
-			deletedFiles := make([]string, 0, len(filenames))
-			for _, filename := range filenames {
-				deletedFiles = append(deletedFiles, download.WrapPath(filename))
-			}
 			for i := 0; i < 10; i++ {
-				deletedFiles = download.DeleteWholeDirectory(c, deletedFiles)
-				if len(deletedFiles) == 0 {
+				filenames = download.DeleteWholeDirectory(c, filenames)
+				if len(filenames) == 0 {
 					break
 				}
 				time.Sleep(time.Second)

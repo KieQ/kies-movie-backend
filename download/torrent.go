@@ -74,6 +74,10 @@ func GetFromDownloadingMap(infoHash string) (*DownloadingInfo, bool, error) {
 	return nil, false, nil
 }
 
+func RemoveFromDownloadingMap(infoHash string) {
+	downloadingMap.Delete(infoHash)
+}
+
 //ShowFilesInMagnet returns InfoHash, Files, timeout and error
 func ShowFilesInMagnet(ctx context.Context, filesInDB, link string) (string, []*torrent.File, bool, error) {
 	t, err := downloader.AddMagnet(link)
@@ -244,11 +248,12 @@ func DeleteWholeDirectory(ctx context.Context, files []string) []string {
 
 	stillThere := make([]string, 0, set.Size())
 	for fileLocation := range set.Range() {
-		err := os.RemoveAll(fileLocation)
+		wrappedFileLocation := WrapPath(fileLocation)
+		err := os.RemoveAll(wrappedFileLocation)
 		if err != nil {
 			logs.CtxError(ctx, "failed to delete file, err=%v", err)
 		}
-		_, e := os.Stat(fileLocation)
+		_, e := os.Stat(wrappedFileLocation)
 		if !os.IsNotExist(e) {
 			stillThere = append(stillThere, fileLocation)
 		}
