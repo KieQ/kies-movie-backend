@@ -233,6 +233,7 @@ func DeleteFiles(ctx context.Context, files []string) []string {
 func DeleteWholeDirectory(ctx context.Context, files []string) []string {
 	set := container.NewSet[string]()
 	for _, file := range files {
+		file = strings.TrimLeft(file, "/")
 		paths := strings.SplitN(file, "/", 2)
 		if len(paths) == 0 {
 			continue
